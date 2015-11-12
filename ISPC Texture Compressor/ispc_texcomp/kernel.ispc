@@ -1357,7 +1357,7 @@ void bc7_enc_mode01237(bc7_enc_state state[], uniform int mode, int part_list[],
 		int qep[24];
 		uint32 qblock[2];
 
-		ep_quant_dequant(qep, ep, mode, state->channels);
+		ep_quant_dequant(qep, ep, mode, channels);
 		
 		uint32 pattern = get_pattern(best_part_id);
 		float err = block_quant(qblock, state->block, bits, ep, pattern, channels);
