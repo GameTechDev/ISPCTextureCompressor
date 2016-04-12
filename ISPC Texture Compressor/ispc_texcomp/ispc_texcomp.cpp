@@ -33,6 +33,7 @@
 
 #include "ispc_texcomp.h"
 #include "kernel_ispc.h"
+#include "memory.h" // memcpy
 
 void GetProfile_ultrafast(bc7_enc_settings* settings)
 {
@@ -429,6 +430,31 @@ void GetProfile_bc6h_veryslow(bc6h_enc_settings* settings)
 void GetProfile_etc_slow(etc_enc_settings* settings)
 {
     settings->fastSkipTreshold = 6;
+}
+
+void ReplicateBorders(rgba_surface* dst_slice, const rgba_surface* src_tex, int start_x, int start_y, int bpp)
+{
+    int bytes_per_pixel = bpp >> 3;
+    
+    bool aliasing = false;
+    if (&src_tex->ptr[src_tex->stride * start_y + bytes_per_pixel * start_x] == dst_slice->ptr) aliasing = true;
+
+    for (int y = 0; y < dst_slice->height; y++)
+    for (int x = 0; x < dst_slice->width; x++)
+    {
+        int xx = start_x + x;
+        int yy = start_y + y;
+
+        if (aliasing && xx < src_tex->width && yy < src_tex->height) continue;
+
+        if (xx >= src_tex->width) xx = src_tex->width - 1;
+        if (yy >= src_tex->height) yy = src_tex->height - 1;
+
+        void* dst = &dst_slice->ptr[dst_slice->stride * y + bytes_per_pixel * x];
+        void* src = &src_tex->ptr[src_tex->stride * yy + bytes_per_pixel * xx];
+
+        memcpy(dst, src, bytes_per_pixel);
+    }
 }
 
 void CompressBlocksBC1(const rgba_surface* src, uint8_t* dst)

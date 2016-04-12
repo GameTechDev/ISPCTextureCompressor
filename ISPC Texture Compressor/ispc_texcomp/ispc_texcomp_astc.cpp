@@ -41,8 +41,29 @@ void GetProfile_astc_fast(astc_enc_settings* settings, int block_width, int bloc
 {
     settings->block_width = block_width;
     settings->block_height = block_height;
+    settings->channels = 3;
 
     settings->fastSkipTreshold = 5;
+    settings->refineIterations = 2;
+}
+
+void GetProfile_astc_alpha_fast(astc_enc_settings* settings, int block_width, int block_height)
+{
+    settings->block_width = block_width;
+    settings->block_height = block_height;
+    settings->channels = 4;
+
+    settings->fastSkipTreshold = 5;
+    settings->refineIterations = 2;
+}
+
+void GetProfile_astc_alpha_slow(astc_enc_settings* settings, int block_width, int block_height)
+{
+    settings->block_width = block_width;
+    settings->block_height = block_height;
+    settings->channels = 4;
+
+    settings->fastSkipTreshold = 64;
     settings->refineIterations = 2;
 }
 
@@ -58,6 +79,7 @@ struct astc_block
     int partitions;
     int partition_id;
     int color_endpoint_pairs;
+    int channels;
     int color_endpoint_modes[4];
     int endpoint_range;
     uint8_t endpoints[18];
@@ -456,7 +478,7 @@ void pack_block(uint32_t data[4], astc_block* block)
 }
 
 void atsc_rank(const rgba_surface* src, int xx, int yy, uint32_t* mode_buffer, astc_enc_settings* settings)
-{    
+{
     ispc::astc_rank_ispc((ispc::rgba_surface*)src, xx, yy, mode_buffer, (ispc::astc_enc_settings*)settings);
 }
 
@@ -468,13 +490,15 @@ extern "C" void pack_block_c(uint32_t data[4], ispc::astc_block* block)
 
 void setup_list_context(ispc::astc_enc_context* ctx, uint32_t packed_mode)
 {
-    ctx->width = 2 + get_field(packed_mode, 14, 12); // 2..8 <= 2^3
-    ctx->height = 2 + get_field(packed_mode, 17, 15); // 2..8 <= 2^3
-    ctx->dual_plane = !!get_field(packed_mode, 18, 18); // 0 or 1
+    ctx->width = 2 + get_field(packed_mode, 15, 13); // 2..8 <= 2^3
+    ctx->height = 2 + get_field(packed_mode, 18, 16); // 2..8 <= 2^3
+    ctx->dual_plane = !!get_field(packed_mode, 19, 19); // 0 or 1
     ctx->partitions = 1;
-
-    int color_endpoint_modes0 = get_field(packed_mode, 6, 6) * 2 + 6; // 6 or 8
+    
+    int color_endpoint_modes0 = get_field(packed_mode, 7, 6) * 2 + 6; // 6, 8, 10 or 12
     ctx->color_endpoint_pairs = 1 + (color_endpoint_modes0 / 4);
+
+    ctx->channels = (color_endpoint_modes0 > 8) ? 4 : 3;
 }
 
 void astc_encode(const rgba_surface* src, float* block_scores, uint8_t* dst, uint64_t* list, astc_enc_settings* settings)
@@ -498,23 +522,18 @@ void CompressBlocksASTC(const rgba_surface* src, uint8_t* dst, astc_enc_settings
     int tex_width = src->width / settings->block_width;
     int programCount = ispc::get_programCount();
 
-    std::vector<float> block_scores;
-    block_scores.resize(tex_width * src->height / settings->block_height);
+    std::vector<float> block_scores(tex_width * src->height / settings->block_height);
 
     for (int yy = 0; yy < src->height / settings->block_height; yy++)
     for (int xx = 0; xx < tex_width; xx++)
     {
         block_scores[yy * tex_width + xx] = std::numeric_limits<float>::infinity();
     }
-        
-    int mode_list_size = 1549;
-    int list_size = programCount;
-    std::vector<uint64_t> mode_lists;
-    mode_lists.resize(list_size * mode_list_size);
-    memset(&mode_lists[0], 0, list_size * mode_list_size * sizeof(uint64_t));
 
-    std::vector<uint32_t> mode_buffer;
-    mode_buffer.resize(programCount * settings->fastSkipTreshold);
+    int mode_list_size = 3334;
+    int list_size = programCount;
+    std::vector<uint64_t> mode_lists(list_size * mode_list_size);
+    std::vector<uint32_t> mode_buffer(programCount * settings->fastSkipTreshold);
 
     for (int yy = 0; yy < src->height / settings->block_height; yy++)
     for (int _x = 0; _x < (tex_width + programCount - 1) / programCount; _x++)
@@ -532,7 +551,6 @@ void CompressBlocksASTC(const rgba_surface* src, uint8_t* dst, astc_enc_settings
             int mode_bin = mode >> 20;
             uint64_t* mode_list = &mode_lists[list_size * mode_bin];
 
-                
             if (*mode_list < programCount - 1)
             {
                 int index = int(mode_list[0] + 1);

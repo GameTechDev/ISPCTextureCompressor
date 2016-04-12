@@ -38,7 +38,7 @@ struct rgba_surface
     uint8_t* ptr;
     int32_t width;
     int32_t height;
-    int32_t stride;
+    int32_t stride; // in bytes
 };
 
 struct bc7_enc_settings
@@ -75,6 +75,7 @@ struct astc_enc_settings
 {
     int block_width;
     int block_height;
+    int channels;
 
     int fastSkipTreshold;
     int refineIterations;
@@ -106,6 +107,11 @@ extern "C" void GetProfile_etc_slow(etc_enc_settings* settings);
 
 // profiles for ASTC
 extern "C" void GetProfile_astc_fast(astc_enc_settings* settings, int block_width, int block_height);
+extern "C" void GetProfile_astc_alpha_fast(astc_enc_settings* settings, int block_width, int block_height);
+extern "C" void GetProfile_astc_alpha_slow(astc_enc_settings* settings, int block_width, int block_height);
+
+// helper function to replicate border pixels for the desired block sizes (bpp = 32 or 64)
+extern "C" void ReplicateBorders(rgba_surface* dst_slice, const rgba_surface* src_tex, int x, int y, int bpp);
 
 /*
 	Notes:

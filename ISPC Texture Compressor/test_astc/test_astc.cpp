@@ -80,6 +80,12 @@ void load_bmp(rgba_surface* img, char* filename)
             img->ptr[yy * img->stride + x * 4 + 1] = raw_line[x * bytePerPixel + 1];
             img->ptr[yy * img->stride + x * 4 + 2] = raw_line[x * bytePerPixel + 0];
         }
+
+        if (bytePerPixel == 4)
+        for (int x = 0; x < img->width; x++)
+        {
+            img->ptr[yy * img->stride + x * 4 + 3] = raw_line[x * bytePerPixel + 3];
+        }
     }
 
     fclose(f);
@@ -138,14 +144,14 @@ void alloc_image(rgba_surface* img, int width, int height)
 void compress_astc_tex(rgba_surface* output_tex, rgba_surface* img, int block_width, int block_height)
 {
     astc_enc_settings settings;
-    GetProfile_astc_fast(&settings, block_width, block_height);
+    GetProfile_astc_alpha_fast(&settings, block_width, block_height);
     CompressBlocksASTC(img, output_tex->ptr, &settings);
 }
 
 void compress_astc_tex_mt(rgba_surface* output_tex, rgba_surface* img, int block_width, int block_height)
 {
     astc_enc_settings settings;
-    GetProfile_astc_fast(&settings, block_width, block_height);
+    GetProfile_astc_alpha_slow(&settings, block_width, block_height);
 
     int thread_count = 32;
 
@@ -188,18 +194,7 @@ void fill_borders(rgba_surface* dst, rgba_surface* src, int block_width, int blo
     int full_height = idiv_ceil(src->height, block_height) * block_height;
     alloc_image(dst, full_width, full_height);
     
-    for (int y = 0; y < dst->height; y++)
-    for (int x = 0; x < dst->width; x++)
-    {
-        int clipped_y = min(y, src->height - 1);
-        int clipped_x = min(x, src->width - 1);
-
-        for (int p = 0; p < 3; p++)
-        {
-            int value = src->ptr[src->stride * clipped_y + clipped_x * 4 + p];
-            dst->ptr[dst->stride * y + x * 4 + p] = value;
-        }
-    }
+    ReplicateBorders(dst, src, 0, 0, 32);
 }
 
 void enc_astc_file(char* filename, char* dst_filename)
