@@ -34,8 +34,10 @@
 #include "ispc_texcomp.h"
 #include "kernel_astc_ispc.h"
 #include <cassert>
+#include <cstring>
 #include <algorithm>
 #include <vector>
+#include <limits>
 
 void GetProfile_astc_fast(astc_enc_settings* settings, int block_width, int block_height)
 {
