@@ -1,0 +1,37 @@
+CXX ?= g++
+ISPC ?= ./ispc_linux
+CXXFLAGS ?= -O2 -msse2 -fPIC -I.
+ISPC_FLAGS ?= -O2 --arch=x86-64 --target=sse2,avx --opt=fast-math --pic
+LDFLAGS ?= -shared -rdynamic
+
+DYNAMIC_LIBRARY = build/libispc_texcomp.so
+OBJS = ispc_texcomp/kernel_astc_ispc.o \
+ispc_texcomp/kernel_astc_ispc_sse2.o \
+ispc_texcomp/kernel_astc_ispc_avx.o \
+ispc_texcomp/kernel_ispc.o \
+ispc_texcomp/kernel_ispc_sse2.o \
+ispc_texcomp/kernel_ispc_avx.o \
+ispc_texcomp/ispc_texcomp_astc.o \
+ispc_texcomp/ispc_texcomp.o
+
+all: $(DYNAMIC_LIBRARY)
+
+clean:
+	rm -f $(DYNAMIC_LIBRARY) $(OBJS) ispc_texcomp/kernel*ispc*.h
+
+# Force ispc targets to run before compiling the cpp that relies on their generated headers
+ispc_texcomp/ispc_texcomp.cpp : ispc_texcomp/kernel_ispc.o
+ispc_texcomp/ispc_texcomp_astc.cpp : ispc_texcomp/kernel_astc_ispc.o
+
+# Simple "generate .o from .cpp using c++ compiler"
+%.o : %.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+# Generate .o and .h +variants using ispc
+%_ispc.o %_ispc_sse2.o %_ispc_avx.o %_ispc.h %_ispc_sse2.h %_ispc_avx.h : %.ispc
+	$(ISPC) $(ISPC_FLAGS) -o $@ -h $(patsubst %.o,%.h,$@) $<
+
+# Link
+$(DYNAMIC_LIBRARY) : $(OBJS)
+	mkdir -p build
+	$(CXX) $(LDFLAGS) -o $@ $^

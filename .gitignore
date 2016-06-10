@@ -232,3 +232,11 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+
+
+# Mac OS X
+# =========================
+
+# Xcode project file user settings
+*.xcuserstate
+xcuserdata
