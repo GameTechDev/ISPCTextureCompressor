@@ -1601,10 +1601,9 @@ void quantize_endpoints_scale(astc_block block[], float endpoints[4])
     for (uniform int p = 0; p < 3; p++)
         block->endpoints[p] = quant_endpoint(far[p], ep_levels);
 
-    float sq_norm = dot3(far, far);
+    float sq_norm = max(dot3(far, far), 0.001);
     float scale = dot3(far, near) / sq_norm;
 
-    assert(scale <= 1);
     block->endpoints[3] = quant_endpoint(scale * 256, ep_levels);
 
     if (block->color_endpoint_modes[0] > 8)
