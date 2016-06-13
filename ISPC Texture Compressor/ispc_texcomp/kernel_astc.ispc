@@ -188,7 +188,7 @@ inline void clear_alpha(float pixels[], uniform int width, uniform int height)
     for (uniform int y = 0; y < height; y++)
     for (uniform int x = 0; x < width; x++)
     {
-        set_pixel(pixels, 3, x, y, 0);
+        set_pixel(pixels, 3, x, y, 255);
     }
 }
 
@@ -484,7 +484,6 @@ struct astc_rank_state
     uniform int pitch;
 
     uniform int fastSkipTreshold;
-    uniform int refineIterations;
 };
 
 struct astc_mode
@@ -655,7 +654,7 @@ void compute_metrics(astc_rank_state state[])
         float base[4], dir[4];
         for (int p = 0; p < 4; p++) dir[p] = endpoints[p * 2 + 1] - endpoints[p * 2];
         for (int p = 0; p < 4; p++) base[p] = endpoints[p * 2];
-        float sq_norm = dot4(dir, dir);
+        float sq_norm = dot4(dir, dir) + 0.00001;
 
         float pca_error = 0;
         float alpha_error = 0;
@@ -663,7 +662,7 @@ void compute_metrics(astc_rank_state state[])
         for (uniform int y = 0; y < state->block_height; y++)
         for (uniform int x = 0; x < state->block_width; x++)
         {
-            float pixel[3];
+            float pixel[4];
             for (uniform int p = 0; p < 4; p++) pixel[p] = get_pixel(pset->pixels, p, x, y) - base[p];
             float proj = dot4(pixel, dir) / sq_norm;
             for (uniform int p = 0; p < 3; p++) pca_error += sq(get_pixel(pset->pixels, p, x, y) - (proj * dir[p] + base[p]));
@@ -681,14 +680,14 @@ void compute_metrics(astc_rank_state state[])
     {
         rotate_plane(pset, c - 1);
         
-        bool zero_based = (i==1);
+        bool zero_based = (i == 1);
         float endpoints[8];
         compute_pca_endpoints(endpoints, pset, zero_based, 3);
 
         float base[3], dir[3];
         for (int p = 0; p < 3; p++) dir[p] = endpoints[p * 2 + 1] - endpoints[p * 2];
         for (int p = 0; p < 3; p++) base[p] = endpoints[p * 2];
-        float sq_norm = dot3(dir, dir);
+        float sq_norm = dot3(dir, dir) + 0.00001;
 
         float pca_error = 0;
         float alpha_error = 0;
@@ -766,8 +765,8 @@ float estimate_error(astc_rank_state state[], uniform astc_mode mode[])
     uniform float sq_rcp_ep_levels = get_sq_rcp_levels(mode->endpoint_range);
     float quant_error = 0;
 
-    quant_error += 2.5 * sq_norm * sq_rcp_w_levels;
-    quant_error += 9075 * (state->block_height * state->block_width) * sq_rcp_ep_levels;
+    quant_error += 2 * sq_norm * sq_rcp_w_levels;
+    quant_error += 9000 * (state->block_height * state->block_width) * sq_rcp_ep_levels;
     
     float error = 0;
     error += scale_error;
@@ -1248,7 +1247,6 @@ export void astc_rank_ispc(uniform rgba_surface src[], uniform int xx, uniform i
     state->block_width = settings->block_width;
     state->block_height = settings->block_height;
     state->fastSkipTreshold = settings->fastSkipTreshold;
-    state->refineIterations = settings->refineIterations;
 
     assert(state->fastSkipTreshold <= 64);
 
@@ -1271,7 +1269,7 @@ export void astc_rank_ispc(uniform rgba_surface src[], uniform int xx, uniform i
         if (mode->height > state->block_height) continue;
         if (mode->width > state->block_width) continue;
 
-        if (settings->channels == 3 &&  mode->color_endpoint_modes[0] > 8) continue;
+        if (settings->channels == 3 && mode->color_endpoint_modes[0] > 8) continue;
 
         float error = estimate_error(state, mode);
         count += 1;
@@ -1329,7 +1327,6 @@ struct astc_enc_state
     uniform int block_height;
     uniform int pitch;
 
-    uniform int fastSkipTreshold;
     uniform int refineIterations;
 };
 
@@ -1601,10 +1598,9 @@ void quantize_endpoints_scale(astc_block block[], float endpoints[4])
     for (uniform int p = 0; p < 3; p++)
         block->endpoints[p] = quant_endpoint(far[p], ep_levels);
 
-    float sq_norm = dot3(far, far);
+    float sq_norm = dot3(far, far) + 0.00001;
     float scale = dot3(far, near) / sq_norm;
 
-    assert(scale <= 1);
     block->endpoints[3] = quant_endpoint(scale * 256, ep_levels);
 
     if (block->color_endpoint_modes[0] > 8)
@@ -1685,7 +1681,7 @@ void opt_weights(float scaled_pixels[], astc_block block[])
 
     float dir[4]; dir[3] = 0;
     for (uniform int p = 0; p < channels; p++) dir[p] = rec_endpoints[4 + p] - rec_endpoints[0 + p];
-    float sq_norm = dot4(dir, dir);
+    float sq_norm = dot4(dir, dir) + 0.00001;
     for (uniform int p = 0; p < channels; p++) dir[p] *= (w_levels - 1) / sq_norm;
 
     for (uniform int y = 0; y < block->height; y++)
@@ -1724,7 +1720,7 @@ void ls_refine_scale(float endpoints[4], float scaled_pixels[], astc_block block
         float d = 0;
 
         for (uniform int p = 0; p < 3; p++) d += sq(get_pixel(scaled_pixels, p, x, y));
-        d = sqrt(d+0.1f);
+        d = sqrt(d+0.01f);
 
         sum_w += w;
         sum_ww += w*w;
@@ -1742,7 +1738,7 @@ void ls_refine_scale(float endpoints[4], float scaled_pixels[], astc_block block
 
     float scale = xx[0] / (xx[1] + xx[0]);
 
-    if (xx[1] + xx[0] < 1) scale = 1;        
+    if (xx[1] + xx[0] < 1) scale = 1;
     if (scale > 0.9999) scale = 0.9999;
     if (scale < 0) scale = 0;
         
@@ -1917,7 +1913,7 @@ float optimize_alt_plane(uint8_t alt_weights[], float scaled_pixels[], astc_bloc
 
     float base = gather_float(rec_endpoints, 0 + ccs);
     float dir = gather_float(rec_endpoints, 4 + ccs) - base;
-    float sq_norm = sq(dir+0.0001);
+    float sq_norm = sq(dir) + 0.00001;
     
     int w_levels = get_levels(block->weight_range);
     dir *= (w_levels - 1) / sq_norm;
@@ -2046,8 +2042,7 @@ float measure_error(astc_block block[], astc_enc_state state[])
             acc += main_weights[stride * (jt + 1) + js + 1] * w11;
             filled_weight = (acc + 8) >> 4;
         }
-
-
+        
         if (block->dual_plane)
         {
             int acc = 0;
@@ -2055,7 +2050,6 @@ float measure_error(astc_block block[], astc_enc_state state[])
             acc += alt_weights[stride * (jt + 0) + js + 1] * (fs - w11);
             acc += alt_weights[stride * (jt + 1) + js + 0] * (ft - w11);
             acc += alt_weights[stride * (jt + 1) + js + 1] * w11;
-
             alt_filled_weight = (acc + 8) >> 4;
         }
 
@@ -2072,7 +2066,7 @@ float measure_error(astc_block block[], astc_enc_state state[])
 
             int C = (C0 * (64 - w) + C1 * w + 32) / 64;
 
-            int diff = (C >> 8) - get_pixel(state->pixels, p, x, y);
+            float diff = (C >> 8) - get_pixel(state->pixels, p, x, y);
             sq_error += diff * diff;
         }
     }
@@ -2189,7 +2183,6 @@ export void astc_encode_ispc(uniform rgba_surface src[], uniform float block_sco
 
     state->block_width = settings->block_width;
     state->block_height = settings->block_height;
-    state->fastSkipTreshold = settings->fastSkipTreshold;
     state->refineIterations = settings->refineIterations;
 
     load_block_interleaved(state->pixels, src, xx, yy, state->block_width, state->block_height);

@@ -176,21 +176,21 @@ inline void store_data(uniform uint8 dst[], int width, int xx, uniform int yy, u
 	}
 }
 
-inline void ssymm(float a[3], float covar[6], float b[3])
+inline void ssymv(float a[3], float covar[6], float b[3])
 {
 	a[0] = covar[0]*b[0]+covar[1]*b[1]+covar[2]*b[2];
 	a[1] = covar[1]*b[0]+covar[3]*b[1]+covar[4]*b[2];
 	a[2] = covar[2]*b[0]+covar[4]*b[1]+covar[5]*b[2];
 }
 
-inline void ssymm3(float a[4], float covar[10], float b[4])
+inline void ssymv3(float a[4], float covar[10], float b[4])
 {
 	a[0] = covar[0]*b[0]+covar[1]*b[1]+covar[2]*b[2];
 	a[1] = covar[1]*b[0]+covar[4]*b[1]+covar[5]*b[2];
 	a[2] = covar[2]*b[0]+covar[5]*b[1]+covar[7]*b[2];
 }
 
-inline void ssymm4(float a[4], float covar[10], float b[4])
+inline void ssymv4(float a[4], float covar[10], float b[4])
 {
 	a[0] = covar[0]*b[0]+covar[1]*b[1]+covar[2]*b[2]+covar[3]*b[3];
 	a[1] = covar[1]*b[0]+covar[4]*b[1]+covar[5]*b[2]+covar[6]*b[3];
@@ -204,7 +204,7 @@ inline void compute_axis3(float axis[3], float covar[6], uniform const int power
 
     for (uniform int i=0; i<powerIterations; i++)
 	{
-		ssymm(axis, covar, vec);
+		ssymv(axis, covar, vec);
 		for (uniform int p=0; p<3; p++) vec[p] = axis[p];
 
 		if (i%2==1) // renormalize every other iteration
@@ -227,8 +227,8 @@ inline void compute_axis(float axis[4], float covar[10], uniform const int power
 
     for (uniform int i=0; i<powerIterations; i++)
 	{
-		if (channels == 3) ssymm3(axis, covar, vec);
-        if (channels == 4) ssymm4(axis, covar, vec);
+		if (channels == 3) ssymv3(axis, covar, vec);
+        if (channels == 4) ssymv4(axis, covar, vec);
 		for (uniform int p=0; p<channels; p++) vec[p] = axis[p];
 
 		if (i%2==1) // renormalize every other iteration
@@ -940,8 +940,8 @@ float get_pca_bound(float covar[10], uniform int channels)
 	compute_axis(axis, covar, powerIterations, channels);
 
 	float vec[4];
-    if (channels == 3) ssymm3(vec, covar, axis);
-    if (channels == 4) ssymm4(vec, covar, axis);
+    if (channels == 3) ssymv3(vec, covar, axis);
+    if (channels == 4) ssymv4(vec, covar, axis);
 
 	float sq_sum = 0f;
 	for (uniform int p=0; p<channels; p++) sq_sum += sq(vec[p]);
