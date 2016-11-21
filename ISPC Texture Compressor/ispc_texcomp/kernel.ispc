@@ -559,7 +559,15 @@ inline void CompressBlockBC3_alpha(float block[16], uint32 data[2])
 		ep[1] = max(ep[1], block[k]);
 	}
     
-    if (ep[0] == ep[1]) ep[1] = ep[0]+0.1f;
+	const int ep0int = clamp((int)ep[0], 0, 255);
+	const int ep1int = clamp((int)ep[1], 0, 255);
+	data[0] = ep0int * 256 + ep1int;
+
+	if (ep0int == ep1int)	// constant color block, so just set all indices to 0
+	{
+		data[1] = 0;
+		return;
+	}
 	    
     uint32 qblock[2] = { 0, 0 };
     float scale = 7f/(ep[1]-ep[0]);
@@ -581,7 +589,6 @@ inline void CompressBlockBC3_alpha(float block[16], uint32 data[2])
 
 	// (could be improved by refinement)
     
-    data[0] = clamp((int)ep[0], 0, 255)*256+clamp((int)ep[1], 0, 255);
     data[0] |= qblock[0]<<16;
     data[1] = qblock[0]>>16;
     data[1] |= qblock[1]<<8;
