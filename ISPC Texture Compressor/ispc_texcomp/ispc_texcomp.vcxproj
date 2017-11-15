@@ -148,7 +148,6 @@
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <None Include="ispc_texcomp.def" />
     <CustomBuild Include="kernel_astc.ispc">
       <FileType>Document</FileType>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ispc -O2 "%(Filename).ispc" -o "$(TargetDir)%(Filename).obj" -h "$(ProjectDir)%(Filename)_ispc.h" --target=sse2,sse4,avx,avx2 --opt=fast-math</Command>

@@ -27,9 +27,6 @@
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <None Include="ispc_texcomp.def" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="ispc_texcomp.h">
       <Filter>Source Files</Filter>
     </ClInclude>

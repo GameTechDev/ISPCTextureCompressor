@@ -126,6 +126,9 @@
       <Project>{9b44f7b9-a9af-45a4-8695-96792a18b052}</Project>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\ispc_texcomp\ispc_texcomp.def" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
