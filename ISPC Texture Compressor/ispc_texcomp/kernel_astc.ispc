@@ -295,7 +295,7 @@ inline void compute_axis(float axis[4], float covar[10], uniform const int power
             for (uniform int p = 0; p < channels; p++)
                 norm_sq += axis[p] * axis[p];
 
-            float rnorm = rsqrt(norm_sq);
+            float rnorm = 1.0f / sqrt(norm_sq);	// Note: Replaced the original rsqrt() function as it produces subtly different results on different architectures causing non-deterministic output (Intel vs. AMD Ryzen was observed to differ)
             for (uniform int p = 0; p < channels; p++) vec[p] *= rnorm;
         }
     }
