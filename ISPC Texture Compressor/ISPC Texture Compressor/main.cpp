@@ -1,24 +1,31 @@
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Copyright (c) 2016, Intel Corporation
-// Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated 
-// documentation files (the "Software"), to deal in the Software without restriction, including without limitation 
-// the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
-// permit persons to whom the Software is furnished to do so, subject to the following conditions:
-// The above copyright notice and this permission notice shall be included in all copies or substantial portions of 
-// the Software.
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
-// THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, 
-// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
-// SOFTWARE.
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2016-2019, Intel Corporation
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to
+// deal in the Software without restriction, including without limitation the
+// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+// sell copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+// IN THE SOFTWARE.
+////////////////////////////////////////////////////////////////////////////////
 
-#include "DXUT.h"
-#include "DXUTcamera.h"
-#include "DXUTgui.h"
-#include "DXUTsettingsDlg.h"
-#include "SDKmisc.h"
-#include "SDKMesh.h"
+#include <DXUT.h>
+#include <DXUTcamera.h>
+#include <DXUTgui.h>
+#include <DXUTsettingsDlg.h>
+#include <SDKmisc.h>
+#include <SDKMesh.h>
 #include <tchar.h>
 
 #include "processing.h"
@@ -26,7 +33,7 @@
 // Global variables
 CDXUTDialogResourceManager gDialogResourceManager; // manager for shared resources of dialogs
 CD3DSettingsDlg gD3DSettingsDlg; // Device settings dialog
-CDXUTDialog gHUD; // manages the 3D   
+CDXUTDialog gHUD; // manages the 3D
 CDXUTDialog gSampleUI; // dialog for sample specific controls
 bool gShowHelp = false; // If true, it renders the UI control text
 CDXUTTextHelper* gTxtHelper = NULL;
@@ -38,12 +45,12 @@ int gSurfaceHeight;
 
 enum EImageView
 {
-	eImageView_Uncompressed,
-	eImageView_Compressed,
-	eImageView_Error,
-	eImageView_All,
+    eImageView_Uncompressed,
+    eImageView_Compressed,
+    eImageView_Error,
+    eImageView_All,
 
-	kNumImageView
+    kNumImageView
 };
 
 EImageView gImageView = eImageView_Compressed;
@@ -57,28 +64,28 @@ ID3D11PixelShader* gRenderFramePS = NULL;
 ID3D11PixelShader* gRenderAlphaPS = NULL;
 
 enum
-{	
-	IDC_TOGGLEFULLSCREEN,
-	IDC_TOGGLEREF,
-	IDC_CHANGEDEVICE,
+{
+    IDC_TOGGLEFULLSCREEN,
+    IDC_TOGGLEREF,
+    IDC_CHANGEDEVICE,
 
-	IDC_TEXT,	
-	IDC_PROFILE,
-	IDC_MT,
-	IDC_RECOMPRESS,
-	IDC_IMAGEVIEW,
-	IDC_ALPHA,
-	IDC_LOAD_TEXTURE,
-	IDC_SAVE_TEXTURE
+    IDC_TEXT,
+    IDC_PROFILE,
+    IDC_MT,
+    IDC_RECOMPRESS,
+    IDC_IMAGEVIEW,
+    IDC_ALPHA,
+    IDC_LOAD_TEXTURE,
+    IDC_SAVE_TEXTURE
 };
 
-// Forward declarations 
+// Forward declarations
 bool CALLBACK ModifyDeviceSettings( DXUTDeviceSettings* pDeviceSettings, void* pUserContext );
 LRESULT CALLBACK MsgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, bool* pbNoFurtherProcessing,
                           void* pUserContext );
 void CALLBACK OnKeyboard( UINT nChar, bool bKeyDown, bool bAltDown, void* pUserContext );
-void CALLBACK OnMouse( bool bLeftButtonDown, bool bRightButtonDown, bool bMiddleButtonDown, bool bSideButton1Down, 
-					   bool bSideButton2Down, int nMouseWheelDelta, int xPos, int yPos, void* pUserContext );
+void CALLBACK OnMouse( bool bLeftButtonDown, bool bRightButtonDown, bool bMiddleButtonDown, bool bSideButton1Down,
+                       bool bSideButton2Down, int nMouseWheelDelta, int xPos, int yPos, void* pUserContext );
 
 void CALLBACK OnGUIEvent( UINT nEvent, int nControlID, CDXUTControl* pControl, void* pUserContext );
 
@@ -105,14 +112,14 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
 
-	Initialize();
+    Initialize();
 
     // Set DXUT callbacks
     DXUTSetCallbackDeviceChanging( ModifyDeviceSettings );
     DXUTSetCallbackMsgProc( MsgProc );
     DXUTSetCallbackKeyboard( OnKeyboard );
-	DXUTSetCallbackMouse( OnMouse, true );
-	DXUTSetCallbackD3D11DeviceAcceptable( IsD3D11DeviceAcceptable );
+    DXUTSetCallbackMouse( OnMouse, true );
+    DXUTSetCallbackD3D11DeviceAcceptable( IsD3D11DeviceAcceptable );
     DXUTSetCallbackD3D11DeviceCreated( OnD3D11CreateDevice );
     DXUTSetCallbackD3D11SwapChainResized( OnD3D11ResizedSwapChain );
     DXUTSetCallbackD3D11FrameRender( OnD3D11FrameRender );
@@ -121,112 +128,111 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
 
     InitApp();
 
-	if (gMultithreaded)
-	{
-		InitWin32Threads();
-	}
+    if (gMultithreaded)
+    {
+        InitWin32Threads();
+    }
 
     DXUTInit( true, true, NULL );
     DXUTSetCursorSettings( true, true );
     DXUTCreateWindow( L"ISPC Texture Compressor" );
 
-	// Try to create a device with DX11 feature set
+    // Try to create a device with DX11 feature set
     DXUTCreateDevice (D3D_FEATURE_LEVEL_11_0, true, 1280, 1024 );
 
-	BOOL DX11Available = false;
+    BOOL DX11Available = false;
 
-	// If we don't have an adequate driver, then we revert to DX10 feature set...
-	DXUTDeviceSettings settings = DXUTGetDeviceSettings();
-	if(settings.d3d11.DriverType == D3D_DRIVER_TYPE_UNKNOWN || settings.d3d11.DriverType == D3D_DRIVER_TYPE_NULL) {
-		DXUTCreateDevice(D3D_FEATURE_LEVEL_10_1, true, 1280, 1024);
+    // If we don't have an adequate driver, then we revert to DX10 feature set...
+    DXUTDeviceSettings settings = DXUTGetDeviceSettings();
+    if(settings.d3d11.DriverType == D3D_DRIVER_TYPE_UNKNOWN || settings.d3d11.DriverType == D3D_DRIVER_TYPE_NULL) {
+        DXUTCreateDevice(D3D_FEATURE_LEVEL_10_1, true, 1280, 1024);
 
-		// !HACK! Force enumeration here in order to relocate hardware with new feature level
-		DXUTGetD3D11Enumeration(true);
-		DXUTCreateDevice(D3D_FEATURE_LEVEL_10_1, true, 1280, 1024);
+        // !HACK! Force enumeration here in order to relocate hardware with new feature level
+        DXUTGetD3D11Enumeration(true);
+        DXUTCreateDevice(D3D_FEATURE_LEVEL_10_1, true, 1280, 1024);
 
-		const TCHAR *noDx11msg = _T("Your hardware does not seem to support DX11. BC7 Compression is disabled.");
-		MessageBox(NULL, noDx11msg, _T("Error"), MB_OK);
-	}
-	else
-	{
-		DX11Available = true;
-	}
-	
-	FillProfiles(DX11Available);
+        const TCHAR *noDx11msg = _T("Your hardware does not seem to support DX11. BC7 Compression is disabled.");
+        MessageBox(NULL, noDx11msg, _T("Error"), MB_OK);
+    }
+    else
+    {
+        DX11Available = true;
+    }
+
+    FillProfiles(DX11Available);
 
     DXUTMainLoop();
 
-	// Destroy all of the threads...
-	DestroyThreads();
+    // Destroy all of the threads...
+    DestroyThreads();
 
     return DXUTGetExitCode();
 }
 
-// Initialize the app 
+// Initialize the app
 void InitApp()
 {
-	// Initialize dialogs
-	gD3DSettingsDlg.Init(&gDialogResourceManager);
-	gHUD.Init(&gDialogResourceManager);
-	gSampleUI.Init(&gDialogResourceManager);
+    // Initialize dialogs
+    gD3DSettingsDlg.Init(&gDialogResourceManager);
+    gHUD.Init(&gDialogResourceManager);
+    gSampleUI.Init(&gDialogResourceManager);
 
-	gHUD.SetCallback(OnGUIEvent);
-	int x = 0;
-	int y = 10;
-	gHUD.AddButton(IDC_TOGGLEFULLSCREEN, L"Toggle full screen", x, y, 170, 23);
-	gHUD.AddButton(IDC_TOGGLEREF, L"Toggle REF (F3)", x, y += 26, 170, 23, VK_F3);
-	gHUD.AddButton(IDC_CHANGEDEVICE, L"Change device (F2)", x, y += 26, 170, 23, VK_F2);
-	gHUD.SetSize( 170, 170 );
-	
-	gSampleUI.SetCallback(OnGUIEvent);
-	x = 0;
-	y = 0;
+    gHUD.SetCallback(OnGUIEvent);
+    int x = 0;
+    int y = 10;
+    gHUD.AddButton(IDC_TOGGLEFULLSCREEN, L"Toggle full screen", x, y, 170, 23);
+    gHUD.AddButton(IDC_TOGGLEREF, L"Toggle REF (F3)", x, y += 26, 170, 23, VK_F3);
+    gHUD.AddButton(IDC_CHANGEDEVICE, L"Change device (F2)", x, y += 26, 170, 23, VK_F2);
+    gHUD.SetSize( 170, 170 );
+
+    gSampleUI.SetCallback(OnGUIEvent);
+    x = 0;
+    y = 0;
     gSampleUI.AddStatic(IDC_TEXT, L"", x, y, 1, 1); y += 5*22;
-	gSampleUI.AddComboBox(IDC_PROFILE, x, y, 226, 22); y += 26;
-	gSampleUI.AddCheckBox(IDC_MT, L"Multithreaded", x, y, 125, 22, gMultithreaded);
-	gSampleUI.AddButton(IDC_RECOMPRESS, L"Recompress", x + 131, y, 125, 22); y += 26;
-	gSampleUI.AddComboBox(IDC_IMAGEVIEW, x, y, 145, 22);
-	gSampleUI.AddCheckBox(IDC_ALPHA, L"Show Alpha", x + 151, y, 105, 22); y += 26;
-	gSampleUI.AddButton(IDC_LOAD_TEXTURE, L"Load Texture", x, y, 125, 22);
-	gSampleUI.AddButton(IDC_SAVE_TEXTURE, L"Save Texture", x + 131, y, 125, 22); y += 26;
+    gSampleUI.AddComboBox(IDC_PROFILE, x, y, 226, 22); y += 26;
+    gSampleUI.AddCheckBox(IDC_MT, L"Multithreaded", x, y, 125, 22, gMultithreaded);
+    gSampleUI.AddButton(IDC_RECOMPRESS, L"Recompress", x + 131, y, 125, 22); y += 26;
+    gSampleUI.AddComboBox(IDC_IMAGEVIEW, x, y, 145, 22);
+    gSampleUI.AddCheckBox(IDC_ALPHA, L"Show Alpha", x + 151, y, 105, 22); y += 26;
+    gSampleUI.AddButton(IDC_LOAD_TEXTURE, L"Load Texture", x, y, 125, 22);
+    gSampleUI.AddButton(IDC_SAVE_TEXTURE, L"Save Texture", x + 131, y, 125, 22); y += 26;
 
-	gSampleUI.SetSize( 276, y+150 );
+    gSampleUI.SetSize( 276, y+150 );
 
-	{
-		CDXUTComboBox *comboBox = gSampleUI.GetComboBox(IDC_IMAGEVIEW);
-		comboBox->AddItem(L"Uncompressed", (void *)(eImageView_Uncompressed));
-		comboBox->AddItem(L"Compressed", (void *)(eImageView_Compressed));
-		comboBox->AddItem(L"Error", (void *)(eImageView_Error));
-		comboBox->AddItem(L"All", (void *)(eImageView_All));
-		comboBox->SetSelectedByData((void *)(gImageView));
-	}
+    {
+        CDXUTComboBox *comboBox = gSampleUI.GetComboBox(IDC_IMAGEVIEW);
+        comboBox->AddItem(L"Uncompressed", (void *)(eImageView_Uncompressed));
+        comboBox->AddItem(L"Compressed", (void *)(eImageView_Compressed));
+        comboBox->AddItem(L"Error", (void *)(eImageView_Error));
+        comboBox->AddItem(L"All", (void *)(eImageView_All));
+        comboBox->SetSelectedByData((void *)(gImageView));
+    }
 
-	gSampleUI.SendEvent(IDC_TEXT, true, gSampleUI.GetStatic(IDC_TEXT));
+    gSampleUI.SendEvent(IDC_TEXT, true, gSampleUI.GetStatic(IDC_TEXT));
 }
 
 void FillProfiles(BOOL DX11Available)
 {
-	CDXUTComboBox *comboBox = gSampleUI.GetComboBox(IDC_PROFILE);
-	comboBox->AddItem(L"BC1 (RGB)", (void *)(CompressImageBC1));
-	comboBox->AddItem(L"BC3 (RGBA)", (void *)(CompressImageBC3));
-	if (DX11Available)
-	{
-		
-		comboBox->AddItem(L"BC7 ultrafast (RGB)", (void *)(CompressImageBC7_ultrafast));
-		comboBox->AddItem(L"BC7 veryfast (RGB)", (void *)(CompressImageBC7_veryfast));
-		comboBox->AddItem(L"BC7 fast (RGB)", (void *)(CompressImageBC7_fast));
-		comboBox->AddItem(L"BC7 basic (RGB)", (void *)(CompressImageBC7_basic));
-		comboBox->AddItem(L"BC7 slow (RGB)", (void *)(CompressImageBC7_slow));
-		comboBox->AddItem(L"BC7 alpha-ufast (RGBA)", (void *)(CompressImageBC7_alpha_ultrafast));
-		comboBox->AddItem(L"BC7 alpha-vfast (RGBA)", (void *)(CompressImageBC7_alpha_veryfast));
-		comboBox->AddItem(L"BC7 alpha-fast (RGBA)", (void *)(CompressImageBC7_alpha_fast));
-		comboBox->AddItem(L"BC7 alpha-basic (RGBA)", (void *)(CompressImageBC7_alpha_basic));
-		comboBox->AddItem(L"BC7 alpha-slow (RGBA)", (void *)(CompressImageBC7_alpha_slow));
-		
-		comboBox->SetDropHeight((12-1)*17);
-	}
+    CDXUTComboBox *comboBox = gSampleUI.GetComboBox(IDC_PROFILE);
+    comboBox->AddItem(L"BC1 (RGB)", (void *)(CompressImageBC1));
+    comboBox->AddItem(L"BC3 (RGBA)", (void *)(CompressImageBC3));
+    if (DX11Available)
+    {
+        comboBox->AddItem(L"BC7 ultrafast (RGB)", (void *)(CompressImageBC7_ultrafast));
+        comboBox->AddItem(L"BC7 veryfast (RGB)", (void *)(CompressImageBC7_veryfast));
+        comboBox->AddItem(L"BC7 fast (RGB)", (void *)(CompressImageBC7_fast));
+        comboBox->AddItem(L"BC7 basic (RGB)", (void *)(CompressImageBC7_basic));
+        comboBox->AddItem(L"BC7 slow (RGB)", (void *)(CompressImageBC7_slow));
+        comboBox->AddItem(L"BC7 alpha-ufast (RGBA)", (void *)(CompressImageBC7_alpha_ultrafast));
+        comboBox->AddItem(L"BC7 alpha-vfast (RGBA)", (void *)(CompressImageBC7_alpha_veryfast));
+        comboBox->AddItem(L"BC7 alpha-fast (RGBA)", (void *)(CompressImageBC7_alpha_fast));
+        comboBox->AddItem(L"BC7 alpha-basic (RGBA)", (void *)(CompressImageBC7_alpha_basic));
+        comboBox->AddItem(L"BC7 alpha-slow (RGBA)", (void *)(CompressImageBC7_alpha_slow));
 
-	comboBox->SetSelectedByData((void *)(gCompressionFunc));
+        comboBox->SetDropHeight((12-1)*17);
+    }
+
+    comboBox->SetSelectedByData((void *)(gCompressionFunc));
 }
 
 // Called right before creating a D3D11 device, allowing the app to modify the device settings as needed
@@ -240,10 +246,9 @@ bool CALLBACK ModifyDeviceSettings( DXUTDeviceSettings* pDeviceSettings, void* p
     if( s_bFirstTime )
     {
         s_bFirstTime = false;
-        if( ( DXUT_D3D11_DEVICE == pDeviceSettings->ver &&
-              pDeviceSettings->d3d11.DriverType == D3D_DRIVER_TYPE_REFERENCE ) )
+        if( pDeviceSettings->d3d11.DriverType == D3D_DRIVER_TYPE_REFERENCE )
         {
-            DXUTDisplaySwitchingToREFWarning( pDeviceSettings->ver );
+            DXUTDisplaySwitchingToREFWarning();
         }
     }
 
@@ -253,12 +258,11 @@ bool CALLBACK ModifyDeviceSettings( DXUTDeviceSettings* pDeviceSettings, void* p
 // Render the help and statistics text
 void RenderText()
 {
-    UINT nBackBufferHeight = ( DXUTIsAppRenderingWithD3D9() ) ? DXUTGetD3D9BackBufferSurfaceDesc()->Height :
-            DXUTGetDXGIBackBufferSurfaceDesc()->Height;
+    UINT nBackBufferHeight = DXUTGetDXGIBackBufferSurfaceDesc()->Height;
 
     gTxtHelper->Begin();
     gTxtHelper->SetInsertionPos( 2, 0 );
-    gTxtHelper->SetForegroundColor( D3DXCOLOR( 1.0f, 1.0f, 0.0f, 1.0f ) );
+    gTxtHelper->SetForegroundColor( DirectX::XMFLOAT4( 1.0f, 1.0f, 0.0f, 1.0f ) );
     gTxtHelper->DrawTextLine( DXUTGetFrameStats( false ) );
     gTxtHelper->DrawTextLine( DXUTGetDeviceStats() );
 
@@ -266,17 +270,17 @@ void RenderText()
     if( gShowHelp )
     {
         gTxtHelper->SetInsertionPos( 2, nBackBufferHeight - 20 * 6 );
-        gTxtHelper->SetForegroundColor( D3DXCOLOR( 1.0f, 0.75f, 0.0f, 1.0f ) );
+        gTxtHelper->SetForegroundColor(DirectX::XMFLOAT4( 1.0f, 0.75f, 0.0f, 1.0f ) );
         gTxtHelper->DrawTextLine( L"Controls:" );
 
         gTxtHelper->SetInsertionPos( 20, nBackBufferHeight - 20 * 5 );
-        gTxtHelper->DrawTextLine(	L"Switch Compressed/Uncompressed views: TAB\n"
-									L"Hide help: F1\n"
+        gTxtHelper->DrawTextLine(   L"Switch Compressed/Uncompressed views: TAB\n"
+                                    L"Hide help: F1\n"
                                     L"Quit: ESC\n" );
     }
     else
     {
-        gTxtHelper->SetForegroundColor( D3DXCOLOR( 1.0f, 1.0f, 1.0f, 1.0f ) );
+        gTxtHelper->SetForegroundColor(DirectX::XMFLOAT4( 1.0f, 1.0f, 1.0f, 1.0f ) );
         gTxtHelper->DrawTextLine( L"Press F1 for help" );
     }
 
@@ -319,20 +323,20 @@ void CALLBACK OnKeyboard( UINT nChar, bool bKeyDown, bool bAltDown, void* pUserC
         {
             case VK_F1:
                 gShowHelp = !gShowHelp; break;
-			case VK_TAB:
-				{
-					CDXUTComboBox *comboBox = gSampleUI.GetComboBox(IDC_IMAGEVIEW);
-					if (eImageView_Uncompressed == (intptr_t)comboBox->GetSelectedData())
-					{
-						comboBox->SetSelectedByData((void*)eImageView_Compressed);
-					} 
-					else if (eImageView_Compressed == (intptr_t)comboBox->GetSelectedData())
-					{
-						comboBox->SetSelectedByData((void*)eImageView_Uncompressed);
-					}
-					gSampleUI.SendEvent(IDC_IMAGEVIEW, true, comboBox);
-					break;
-				}
+            case VK_TAB:
+                {
+                    CDXUTComboBox *comboBox = gSampleUI.GetComboBox(IDC_IMAGEVIEW);
+                    if (eImageView_Uncompressed == (intptr_t)comboBox->GetSelectedData())
+                    {
+                        comboBox->SetSelectedByData((void*)eImageView_Compressed);
+                    }
+                    else if (eImageView_Compressed == (intptr_t)comboBox->GetSelectedData())
+                    {
+                        comboBox->SetSelectedByData((void*)eImageView_Uncompressed);
+                    }
+                    gSampleUI.SendEvent(IDC_IMAGEVIEW, true, comboBox);
+                    break;
+                }
         }
     }
 }
@@ -343,76 +347,76 @@ bool gDragging_out = false;
 int gLast_xPos = 0;
 int gLast_yPos = 0;
 
-void CALLBACK OnMouse( bool bLeftButtonDown, bool bRightButtonDown, bool bMiddleButtonDown, bool bSideButton1Down, 
-					   bool bSideButton2Down, int nMouseWheelDelta, int xPos, int yPos, void* pUserContext )
+void CALLBACK OnMouse( bool bLeftButtonDown, bool bRightButtonDown, bool bMiddleButtonDown, bool bSideButton1Down,
+                       bool bSideButton2Down, int nMouseWheelDelta, int xPos, int yPos, void* pUserContext )
 {
-	if (!gDragging_out && gDragging && bLeftButtonDown)
-	{
-		int delta_xPos = xPos-gLast_xPos;
-		int delta_yPos = yPos-gLast_yPos;
+    if (!gDragging_out && gDragging && bLeftButtonDown)
+    {
+        int delta_xPos = xPos-gLast_xPos;
+        int delta_yPos = yPos-gLast_yPos;
 
-		gViewTranslationX += delta_xPos;
-		gViewTranslationY += delta_yPos;
-	}
-	
-	if (nMouseWheelDelta)
-	{
-		float halfWidth = gSurfaceWidth / 2.0f;
-		float halfHeight = gSurfaceHeight / 2.0f;
+        gViewTranslationX += delta_xPos;
+        gViewTranslationY += delta_yPos;
+    }
 
-		int oldzoom = gViewZoomStep;
-		gViewZoomStep += nMouseWheelDelta;
+    if (nMouseWheelDelta)
+    {
+        float halfWidth = gSurfaceWidth / 2.0f;
+        float halfHeight = gSurfaceHeight / 2.0f;
 
-		float old_scale = powf(2.0, oldzoom/300.0f);
-		float new_scale = powf(2.0, gViewZoomStep/300.0f);
+        int oldzoom = gViewZoomStep;
+        gViewZoomStep += nMouseWheelDelta;
 
-		float vx = gViewTranslationX-(xPos-halfWidth);
-		float vy = gViewTranslationY-(yPos-halfHeight);
+        float old_scale = powf(2.0, oldzoom/300.0f);
+        float new_scale = powf(2.0, gViewZoomStep/300.0f);
 
-		vx *= new_scale/old_scale;
-		vy *= new_scale/old_scale;		
+        float vx = gViewTranslationX-(xPos-halfWidth);
+        float vy = gViewTranslationY-(yPos-halfHeight);
 
-		gViewTranslationX = int(vx+xPos-halfWidth);
-		gViewTranslationY = int(vy+yPos-halfHeight);
-	}
+        vx *= new_scale/old_scale;
+        vy *= new_scale/old_scale;
 
-	POINT base, pt = {xPos, yPos};
-	gSampleUI.GetLocation(base);
-	pt.x -= base.x;
-	pt.y -= base.y;
-	CDXUTControl* ctrl = gSampleUI.GetControlAtPoint(pt);
+        gViewTranslationX = int(vx+xPos-halfWidth);
+        gViewTranslationY = int(vy+yPos-halfHeight);
+    }
 
-	if (!gDragging)
-	{
-		gDragging_out = !!ctrl && bLeftButtonDown;
-	}
+    POINT base, pt = {xPos, yPos};
+    gSampleUI.GetLocation(base);
+    pt.x -= base.x;
+    pt.y -= base.y;
+    CDXUTControl* ctrl = gSampleUI.GetControlAtPoint(pt);
 
-	gDragging = bLeftButtonDown;
-	gLast_xPos = xPos;
-	gLast_yPos = yPos;
+    if (!gDragging)
+    {
+        gDragging_out = !!ctrl && bLeftButtonDown;
+    }
+
+    gDragging = bLeftButtonDown;
+    gLast_xPos = xPos;
+    gLast_yPos = yPos;
 }
 
-void SetView(D3DXMATRIX* mView)
+void SetView(DirectX::XMFLOAT4X4* mView)
 {
-	ZeroMemory(mView, sizeof(D3DXMATRIX));
+    ZeroMemory(mView, sizeof(DirectX::XMFLOAT4X4));
 
-	float scale = powf(2.0, gViewZoomStep/300.0f);
+    float scale = powf(2.0, gViewZoomStep/300.0f);
 
-	float pixelFracX = 2.0f/gSurfaceWidth;
-	float pixelFracY = 2.0f/gSurfaceHeight;
+    float pixelFracX = 2.0f/gSurfaceWidth;
+    float pixelFracY = 2.0f/gSurfaceHeight;
 
-	D3D11_TEXTURE2D_DESC uncompTexDesc;
-	{
-		ID3D11Resource* uncompRes;
-		gUncompressedSRV->GetResource(&uncompRes);
-		((ID3D11Texture2D*)uncompRes)->GetDesc(&uncompTexDesc);
-		SAFE_RELEASE(uncompRes);
-	}
+    D3D11_TEXTURE2D_DESC uncompTexDesc;
+    {
+        ID3D11Resource* uncompRes;
+        gUncompressedSRV->GetResource(&uncompRes);
+        ((ID3D11Texture2D*)uncompRes)->GetDesc(&uncompTexDesc);
+        SAFE_RELEASE(uncompRes);
+    }
 
-	float imgscaleX = 1.0f*uncompTexDesc.Width/gSurfaceWidth;
-	float imgscaleY = 1.0f*uncompTexDesc.Height/gSurfaceHeight;
-	
-	mView->m[0][0] = scale*imgscaleX;
+    float imgscaleX = 1.0f*uncompTexDesc.Width/gSurfaceWidth;
+    float imgscaleY = 1.0f*uncompTexDesc.Height/gSurfaceHeight;
+
+    mView->m[0][0] = scale*imgscaleX;
     mView->m[1][1] = scale*imgscaleY;
     mView->m[2][2] = scale;
     mView->m[3][0] = pixelFracX*gViewTranslationX;
@@ -426,136 +430,136 @@ void CALLBACK OnGUIEvent( UINT nEvent, int nControlID, CDXUTControl* pControl, v
     switch( nControlID )
     {
         case IDC_TOGGLEFULLSCREEN:
-		{
+        {
             DXUTToggleFullScreen();
-			break;
-		}
+            break;
+        }
         case IDC_TOGGLEREF:
-		{
+        {
             DXUTToggleREF();
-			break;
-		}
+            break;
+        }
         case IDC_CHANGEDEVICE:
-		{
+        {
             gD3DSettingsDlg.SetActive( !gD3DSettingsDlg.IsActive() );
-			break;
-		}
-		case IDC_TEXT:
-		{
-			WCHAR wstr[MAX_PATH];
-			swprintf_s(wstr, MAX_PATH, 
-				L"Texture Size: %d x %d\n" 
-				L"RGB PSNR: %.2f dB\n" 
-				L"RGBA PSNR: %.2f dB\n" 
-				L"Compression Time: %0.2f ms\n"
-				L"Compression Rate: %0.2f Mp/s\n", 
-				gTexWidth, gTexHeight,
-				gError, gError2,
-				gCompTime, gCompRate);
-			gSampleUI.GetStatic(IDC_TEXT)->SetText(wstr);
-			break;
-		}
-		case IDC_MT:
-		{
-			// Shut down all previous threading abilities.
-			DestroyThreads();
-			
-			gMultithreaded = gSampleUI.GetCheckBox(IDC_MT)->GetChecked();
-					
-			if (gMultithreaded)
-			{
-				InitWin32Threads();
-			}
+            break;
+        }
+        case IDC_TEXT:
+        {
+            WCHAR wstr[MAX_PATH];
+            swprintf_s(wstr, MAX_PATH,
+                L"Texture Size: %d x %d\n"
+                L"RGB PSNR: %.2f dB\n"
+                L"RGBA PSNR: %.2f dB\n"
+                L"Compression Time: %0.2f ms\n"
+                L"Compression Rate: %0.2f Mp/s\n",
+                gTexWidth, gTexHeight,
+                gError, gError2,
+                gCompTime, gCompRate);
+            gSampleUI.GetStatic(IDC_TEXT)->SetText(wstr);
+            break;
+        }
+        case IDC_MT:
+        {
+            // Shut down all previous threading abilities.
+            DestroyThreads();
 
-			// Recompress the texture.
-			RecompressTexture();
-			gSampleUI.SendEvent(IDC_TEXT, true, gSampleUI.GetStatic(IDC_TEXT));
+            gMultithreaded = gSampleUI.GetCheckBox(IDC_MT)->GetChecked();
 
-			break;
-		}
-		case IDC_PROFILE:
-		{ 
-			gCompressionFunc = (CompressionFunc*)gSampleUI.GetComboBox(IDC_PROFILE)->GetSelectedData();
+            if (gMultithreaded)
+            {
+                InitWin32Threads();
+            }
 
-			// Recompress the texture.
-			RecompressTexture();
-			gSampleUI.SendEvent(IDC_TEXT, true, gSampleUI.GetStatic(IDC_TEXT));
+            // Recompress the texture.
+            RecompressTexture();
+            gSampleUI.SendEvent(IDC_TEXT, true, gSampleUI.GetStatic(IDC_TEXT));
 
-			break;
-		}
-		case IDC_LOAD_TEXTURE:
-		{
-			// Store the current working directory.
-			TCHAR workingDirectory[MAX_PATH];
-			GetCurrentDirectory(MAX_PATH, workingDirectory);
+            break;
+        }
+        case IDC_PROFILE:
+        {
+            gCompressionFunc = (CompressionFunc*)gSampleUI.GetComboBox(IDC_PROFILE)->GetSelectedData();
 
-			// Open a file dialog.
-			OPENFILENAME openFileName;
-			WCHAR file[MAX_PATH];
-			file[0] = 0;
-			ZeroMemory(&openFileName, sizeof(OPENFILENAME));
-			openFileName.lStructSize = sizeof(OPENFILENAME);
-			openFileName.lpstrFile = file;
-			openFileName.nMaxFile = MAX_PATH;
-			openFileName.lpstrFilter = L"DDS\0*.dds\0\0";
-			openFileName.nFilterIndex = 1;
-			openFileName.lpstrInitialDir = NULL;
-			openFileName.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
-			if(GetOpenFileName(&openFileName))
-			{
-				CreateTextures(openFileName.lpstrFile);
-			}
+            // Recompress the texture.
+            RecompressTexture();
+            gSampleUI.SendEvent(IDC_TEXT, true, gSampleUI.GetStatic(IDC_TEXT));
 
-			// Restore the working directory. GetOpenFileName changes the current working directory which causes problems with relative paths to assets.
-			SetCurrentDirectory(workingDirectory);
-			gSampleUI.SendEvent(IDC_TEXT, true, gSampleUI.GetStatic(IDC_TEXT));
-			
-			break;
-		}
-		case IDC_RECOMPRESS:
-		{
-			// Recompress the texture.
-			RecompressTexture();
-			gSampleUI.SendEvent(IDC_TEXT, true, gSampleUI.GetStatic(IDC_TEXT));
+            break;
+        }
+        case IDC_LOAD_TEXTURE:
+        {
+            // Store the current working directory.
+            TCHAR workingDirectory[MAX_PATH];
+            GetCurrentDirectory(MAX_PATH, workingDirectory);
 
-			break;
-		}
-		case IDC_SAVE_TEXTURE:
-		{
-			// Store the current working directory.
-			TCHAR workingDirectory[MAX_PATH];
-			GetCurrentDirectory(MAX_PATH, workingDirectory);
+            // Open a file dialog.
+            OPENFILENAME openFileName;
+            WCHAR file[MAX_PATH];
+            file[0] = 0;
+            ZeroMemory(&openFileName, sizeof(OPENFILENAME));
+            openFileName.lStructSize = sizeof(OPENFILENAME);
+            openFileName.lpstrFile = file;
+            openFileName.nMaxFile = MAX_PATH;
+            openFileName.lpstrFilter = L"DDS\0*.dds\0\0";
+            openFileName.nFilterIndex = 1;
+            openFileName.lpstrInitialDir = NULL;
+            openFileName.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+            if(GetOpenFileName(&openFileName))
+            {
+                CreateTextures(openFileName.lpstrFile);
+            }
 
-			// Open a file dialog.
-			OPENFILENAME openFileName;
-			WCHAR file[MAX_PATH];
-			file[0] = 0;
-			ZeroMemory(&openFileName, sizeof(OPENFILENAME));
-			openFileName.lStructSize = sizeof(OPENFILENAME);
-			openFileName.lpstrFile = file;
-			openFileName.nMaxFile = MAX_PATH;
-			openFileName.lpstrFilter = L"DDS\0*.dds\0\0";
-			openFileName.lpstrDefExt = L"dds";
-			openFileName.nFilterIndex = 1;
-			openFileName.lpstrInitialDir = NULL;
-			openFileName.Flags = OFN_PATHMUSTEXIST;
-			if(GetSaveFileName(&openFileName))
-			{
-				SaveTexture(gCompressedSRV,openFileName.lpstrFile);
-			}
+            // Restore the working directory. GetOpenFileName changes the current working directory which causes problems with relative paths to assets.
+            SetCurrentDirectory(workingDirectory);
+            gSampleUI.SendEvent(IDC_TEXT, true, gSampleUI.GetStatic(IDC_TEXT));
 
-			// Restore the working directory. GetOpenFileName changes the current working directory which causes problems with relative paths to assets.
-			SetCurrentDirectory(workingDirectory);
+            break;
+        }
+        case IDC_RECOMPRESS:
+        {
+            // Recompress the texture.
+            RecompressTexture();
+            gSampleUI.SendEvent(IDC_TEXT, true, gSampleUI.GetStatic(IDC_TEXT));
 
-			break;
-		}
-		case IDC_IMAGEVIEW:
-		{
-			gImageView = (EImageView)(INT_PTR)gSampleUI.GetComboBox(IDC_IMAGEVIEW)->GetSelectedData();
+            break;
+        }
+        case IDC_SAVE_TEXTURE:
+        {
+            // Store the current working directory.
+            TCHAR workingDirectory[MAX_PATH];
+            GetCurrentDirectory(MAX_PATH, workingDirectory);
 
-			break;
-		}
-	}
+            // Open a file dialog.
+            OPENFILENAME openFileName;
+            WCHAR file[MAX_PATH];
+            file[0] = 0;
+            ZeroMemory(&openFileName, sizeof(OPENFILENAME));
+            openFileName.lStructSize = sizeof(OPENFILENAME);
+            openFileName.lpstrFile = file;
+            openFileName.nMaxFile = MAX_PATH;
+            openFileName.lpstrFilter = L"DDS\0*.dds\0\0";
+            openFileName.lpstrDefExt = L"dds";
+            openFileName.nFilterIndex = 1;
+            openFileName.lpstrInitialDir = NULL;
+            openFileName.Flags = OFN_PATHMUSTEXIST;
+            if(GetSaveFileName(&openFileName))
+            {
+                SaveTexture(gCompressedSRV,openFileName.lpstrFile);
+            }
+
+            // Restore the working directory. GetOpenFileName changes the current working directory which causes problems with relative paths to assets.
+            SetCurrentDirectory(workingDirectory);
+
+            break;
+        }
+        case IDC_IMAGEVIEW:
+        {
+            gImageView = (EImageView)(INT_PTR)gSampleUI.GetComboBox(IDC_IMAGEVIEW)->GetSelectedData();
+
+            break;
+        }
+    }
 }
 
 // Reject any D3D11 devices that aren't acceptable by returning false
@@ -577,15 +581,15 @@ HRESULT CompileShaderFromFile( WCHAR* szFileName, LPCSTR szEntryPoint, LPCSTR sz
     DWORD dwShaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
 #if defined( DEBUG ) || defined( _DEBUG )
     // Set the D3DCOMPILE_DEBUG flag to embed debug information in the shaders.
-    // Setting this flag improves the shader debugging experience, but still allows 
-    // the shaders to be optimized and to run exactly the way they will run in 
+    // Setting this flag improves the shader debugging experience, but still allows
+    // the shaders to be optimized and to run exactly the way they will run in
     // the release configuration of this program.
     dwShaderFlags |= D3DCOMPILE_DEBUG;
 #endif
 
     ID3DBlob* pErrorBlob;
-    hr = D3DX11CompileFromFile( str, NULL, NULL, szEntryPoint, szShaderModel, 
-        dwShaderFlags, 0, NULL, ppBlobOut, &pErrorBlob, NULL );
+    hr = D3DCompileFromFile( str, NULL, NULL, szEntryPoint, szShaderModel,
+        dwShaderFlags, 0, ppBlobOut, &pErrorBlob);
     if( FAILED(hr) )
     {
         if( pErrorBlob != NULL )
@@ -611,20 +615,20 @@ HRESULT CALLBACK OnD3D11CreateDevice( ID3D11Device* pd3dDevice, const DXGI_SURFA
 
     // Create a vertex shader.
     ID3DBlob* vertexShaderBuffer = NULL;
-    V_RETURN(CompileShaderFromFile(L"shaders.hlsl", "PassThroughVS", "vs_4_0", &vertexShaderBuffer));
+    V_RETURN(CompileShaderFromFile((WCHAR*) L"shaders.hlsl", "PassThroughVS", "vs_4_0", &vertexShaderBuffer));
     V_RETURN(pd3dDevice->CreateVertexShader(vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), NULL, &gVertexShader));
 
-	// Create a pixel shader that renders the composite frame.
+    // Create a pixel shader that renders the composite frame.
     ID3DBlob* pixelShaderBuffer = NULL;
-    V_RETURN(CompileShaderFromFile(L"shaders.hlsl", "RenderFramePS", "ps_4_0", &pixelShaderBuffer));
+    V_RETURN(CompileShaderFromFile((WCHAR*) L"shaders.hlsl", "RenderFramePS", "ps_4_0", &pixelShaderBuffer));
     V_RETURN(pd3dDevice->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, &gRenderFramePS));
 
-	// Create a pixel shader that renders the error texture.
-    V_RETURN(CompileShaderFromFile(L"shaders.hlsl", "RenderTexturePS", "ps_4_0", &pixelShaderBuffer));
+    // Create a pixel shader that renders the error texture.
+    V_RETURN(CompileShaderFromFile((WCHAR*) L"shaders.hlsl", "RenderTexturePS", "ps_4_0", &pixelShaderBuffer));
     V_RETURN(pd3dDevice->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, &gRenderTexturePS));
 
-	// Create a pixel shader that shows alpha
-    V_RETURN(CompileShaderFromFile(L"shaders.hlsl", "RenderAlphaPS", "ps_4_0", &pixelShaderBuffer));
+    // Create a pixel shader that shows alpha
+    V_RETURN(CompileShaderFromFile((WCHAR*) L"shaders.hlsl", "RenderAlphaPS", "ps_4_0", &pixelShaderBuffer));
     V_RETURN(pd3dDevice->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, &gRenderAlphaPS));
 
     // Create our vertex input layout
@@ -639,68 +643,68 @@ HRESULT CALLBACK OnD3D11CreateDevice( ID3D11Device* pd3dDevice, const DXGI_SURFA
     SAFE_RELEASE(vertexShaderBuffer);
     SAFE_RELEASE(pixelShaderBuffer);
 
-	// Create a vertex buffer for three textured quads.
-	D3DXVECTOR2 quadSize(0.32f, 0.32f);
-	D3DXVECTOR2 quadOrigin(-0.66f, -0.0f);
+    // Create a vertex buffer for three textured quads.
+    DirectX::XMFLOAT2 quadSize(0.32f, 0.32f);
+    DirectX::XMFLOAT2 quadOrigin(-0.66f, -0.0f);
     Vertex tripleQuadVertices[18];
-	ZeroMemory(tripleQuadVertices, sizeof(tripleQuadVertices));
-	for(int i = 0; i < 18; i += 6)
-	{
-		tripleQuadVertices[i].position = D3DXVECTOR3(quadOrigin.x - quadSize.x, quadOrigin.y + quadSize.y, 0.0f);
-		tripleQuadVertices[i].texCoord = D3DXVECTOR2(0.0f, 0.0f);
+    ZeroMemory(tripleQuadVertices, sizeof(tripleQuadVertices));
+    for(int i = 0; i < 18; i += 6)
+    {
+        tripleQuadVertices[i].position = DirectX::XMFLOAT3(quadOrigin.x - quadSize.x, quadOrigin.y + quadSize.y, 0.0f);
+        tripleQuadVertices[i].texCoord = DirectX::XMFLOAT2(0.0f, 0.0f);
 
-		tripleQuadVertices[i + 1].position = D3DXVECTOR3(quadOrigin.x + quadSize.x, quadOrigin.y + quadSize.y, 0.0f);
-		tripleQuadVertices[i + 1].texCoord = D3DXVECTOR2(1.0f, 0.0f);
+        tripleQuadVertices[i + 1].position = DirectX::XMFLOAT3(quadOrigin.x + quadSize.x, quadOrigin.y + quadSize.y, 0.0f);
+        tripleQuadVertices[i + 1].texCoord = DirectX::XMFLOAT2(1.0f, 0.0f);
 
-		tripleQuadVertices[i + 2].position = D3DXVECTOR3(quadOrigin.x + quadSize.x, quadOrigin.y - quadSize.y, 0.0f);
-		tripleQuadVertices[i + 2].texCoord = D3DXVECTOR2(1.0f, 1.0f);
+        tripleQuadVertices[i + 2].position = DirectX::XMFLOAT3(quadOrigin.x + quadSize.x, quadOrigin.y - quadSize.y, 0.0f);
+        tripleQuadVertices[i + 2].texCoord = DirectX::XMFLOAT2(1.0f, 1.0f);
 
-		tripleQuadVertices[i + 3].position = D3DXVECTOR3(quadOrigin.x + quadSize.x, quadOrigin.y - quadSize.y, 0.0f);
-		tripleQuadVertices[i + 3].texCoord = D3DXVECTOR2(1.0f, 1.0f);
+        tripleQuadVertices[i + 3].position = DirectX::XMFLOAT3(quadOrigin.x + quadSize.x, quadOrigin.y - quadSize.y, 0.0f);
+        tripleQuadVertices[i + 3].texCoord = DirectX::XMFLOAT2(1.0f, 1.0f);
 
-		tripleQuadVertices[i + 4].position = D3DXVECTOR3(quadOrigin.x - quadSize.x, quadOrigin.y - quadSize.y, 0.0f);
-		tripleQuadVertices[i + 4].texCoord = D3DXVECTOR2(0.0f, 1.0f);
+        tripleQuadVertices[i + 4].position = DirectX::XMFLOAT3(quadOrigin.x - quadSize.x, quadOrigin.y - quadSize.y, 0.0f);
+        tripleQuadVertices[i + 4].texCoord = DirectX::XMFLOAT2(0.0f, 1.0f);
 
-		tripleQuadVertices[i + 5].position = D3DXVECTOR3(quadOrigin.x - quadSize.x, quadOrigin.y + quadSize.y, 0.0f);
-		tripleQuadVertices[i + 5].texCoord = D3DXVECTOR2(0.0f, 0.0f);
+        tripleQuadVertices[i + 5].position = DirectX::XMFLOAT3(quadOrigin.x - quadSize.x, quadOrigin.y + quadSize.y, 0.0f);
+        tripleQuadVertices[i + 5].texCoord = DirectX::XMFLOAT2(0.0f, 0.0f);
 
-		quadOrigin.x += 0.66f;
-	}
+        quadOrigin.x += 0.66f;
+    }
 
     D3D11_BUFFER_DESC bufDesc;
-	ZeroMemory(&bufDesc, sizeof(bufDesc));
+    ZeroMemory(&bufDesc, sizeof(bufDesc));
     bufDesc.Usage = D3D11_USAGE_DEFAULT;
     bufDesc.ByteWidth = sizeof(tripleQuadVertices);
     bufDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	bufDesc.CPUAccessFlags = 0;
+    bufDesc.CPUAccessFlags = 0;
     D3D11_SUBRESOURCE_DATA data;
-	ZeroMemory(&data, sizeof(data));
+    ZeroMemory(&data, sizeof(data));
     data.pSysMem = tripleQuadVertices;
     V_RETURN(pd3dDevice->CreateBuffer(&bufDesc, &data, &gVertexBuffer));
 
-	// Create a vertex buffer for a single textured quad.
-	quadSize = D3DXVECTOR2(1.0f, 1.0f);
-	quadOrigin = D3DXVECTOR2(0.0f, 0.0f);
-	Vertex singleQuadVertices[6];
-	singleQuadVertices[0].position = D3DXVECTOR3(quadOrigin.x - quadSize.x, quadOrigin.y + quadSize.y, 0.0f);
-	singleQuadVertices[0].texCoord = D3DXVECTOR2(0.0f, 0.0f);
-	singleQuadVertices[1].position = D3DXVECTOR3(quadOrigin.x + quadSize.x, quadOrigin.y + quadSize.y, 0.0f);
-	singleQuadVertices[1].texCoord = D3DXVECTOR2(1.0f, 0.0f);
-	singleQuadVertices[2].position = D3DXVECTOR3(quadOrigin.x + quadSize.x, quadOrigin.y - quadSize.y, 0.0f);
-	singleQuadVertices[2].texCoord = D3DXVECTOR2(1.0f, 1.0f);
-	singleQuadVertices[3].position = D3DXVECTOR3(quadOrigin.x + quadSize.x, quadOrigin.y - quadSize.y, 0.0f);
-	singleQuadVertices[3].texCoord = D3DXVECTOR2(1.0f, 1.0f);
-	singleQuadVertices[4].position = D3DXVECTOR3(quadOrigin.x - quadSize.x, quadOrigin.y - quadSize.y, 0.0f);
-	singleQuadVertices[4].texCoord = D3DXVECTOR2(0.0f, 1.0f);
-	singleQuadVertices[5].position = D3DXVECTOR3(quadOrigin.x - quadSize.x, quadOrigin.y + quadSize.y, 0.0f);
-	singleQuadVertices[5].texCoord = D3DXVECTOR2(0.0f, 0.0f);
+    // Create a vertex buffer for a single textured quad.
+    quadSize = DirectX::XMFLOAT2(1.0f, 1.0f);
+    quadOrigin = DirectX::XMFLOAT2(0.0f, 0.0f);
+    Vertex singleQuadVertices[6];
+    singleQuadVertices[0].position = DirectX::XMFLOAT3(quadOrigin.x - quadSize.x, quadOrigin.y + quadSize.y, 0.0f);
+    singleQuadVertices[0].texCoord = DirectX::XMFLOAT2(0.0f, 0.0f);
+    singleQuadVertices[1].position = DirectX::XMFLOAT3(quadOrigin.x + quadSize.x, quadOrigin.y + quadSize.y, 0.0f);
+    singleQuadVertices[1].texCoord = DirectX::XMFLOAT2(1.0f, 0.0f);
+    singleQuadVertices[2].position = DirectX::XMFLOAT3(quadOrigin.x + quadSize.x, quadOrigin.y - quadSize.y, 0.0f);
+    singleQuadVertices[2].texCoord = DirectX::XMFLOAT2(1.0f, 1.0f);
+    singleQuadVertices[3].position = DirectX::XMFLOAT3(quadOrigin.x + quadSize.x, quadOrigin.y - quadSize.y, 0.0f);
+    singleQuadVertices[3].texCoord = DirectX::XMFLOAT2(1.0f, 1.0f);
+    singleQuadVertices[4].position = DirectX::XMFLOAT3(quadOrigin.x - quadSize.x, quadOrigin.y - quadSize.y, 0.0f);
+    singleQuadVertices[4].texCoord = DirectX::XMFLOAT2(0.0f, 1.0f);
+    singleQuadVertices[5].position = DirectX::XMFLOAT3(quadOrigin.x - quadSize.x, quadOrigin.y + quadSize.y, 0.0f);
+    singleQuadVertices[5].texCoord = DirectX::XMFLOAT2(0.0f, 0.0f);
 
-	ZeroMemory(&bufDesc, sizeof(bufDesc));
+    ZeroMemory(&bufDesc, sizeof(bufDesc));
     bufDesc.Usage = D3D11_USAGE_DEFAULT;
     bufDesc.ByteWidth = sizeof(singleQuadVertices);
     bufDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	bufDesc.CPUAccessFlags = 0;
-	ZeroMemory(&data, sizeof(data));
+    bufDesc.CPUAccessFlags = 0;
+    ZeroMemory(&data, sizeof(data));
     data.pSysMem = singleQuadVertices;
     V_RETURN(pd3dDevice->CreateBuffer(&bufDesc, &data, &gQuadVB));
 
@@ -726,13 +730,13 @@ HRESULT CALLBACK OnD3D11CreateDevice( ID3D11Device* pd3dDevice, const DXGI_SURFA
     SamDesc.MaxLOD = D3D11_FLOAT32_MAX;
     V_RETURN(pd3dDevice->CreateSamplerState(&SamDesc, &gSamPoint));
 
-	// Load and initialize the textures.
+    // Load and initialize the textures.
     WCHAR path[MAX_PATH];
     V_RETURN(DXUTFindDXSDKMediaFileCch(path, MAX_PATH, L"Images\\quadTexture_wAlpha_1k.dds"));
-	V_RETURN(CreateTextures(path));
+    V_RETURN(CreateTextures(path));
 
-	// Update the UI's texture width and height.
-	gSampleUI.SendEvent(IDC_TEXT, true, gSampleUI.GetStatic(IDC_TEXT));
+    // Update the UI's texture width and height.
+    gSampleUI.SendEvent(IDC_TEXT, true, gSampleUI.GetStatic(IDC_TEXT));
 
     return S_OK;
 }
@@ -745,11 +749,11 @@ HRESULT CALLBACK OnD3D11ResizedSwapChain( ID3D11Device* pd3dDevice, IDXGISwapCha
     V_RETURN( gDialogResourceManager.OnD3D11ResizedSwapChain( pd3dDevice, pBackBufferSurfaceDesc ) );
     V_RETURN( gD3DSettingsDlg.OnD3D11ResizedSwapChain( pd3dDevice, pBackBufferSurfaceDesc ) );
 
-	gSurfaceWidth = pBackBufferSurfaceDesc->Width;
-	gSurfaceHeight = pBackBufferSurfaceDesc->Height;
+    gSurfaceWidth = pBackBufferSurfaceDesc->Width;
+    gSurfaceHeight = pBackBufferSurfaceDesc->Height;
 
     gHUD.SetLocation( gSurfaceWidth - gHUD.GetWidth(), 0 );
-	gSampleUI.SetLocation( gSurfaceWidth-gSampleUI.GetWidth(), gSurfaceHeight-gSampleUI.GetHeight() );
+    gSampleUI.SetLocation( gSurfaceWidth-gSampleUI.GetWidth(), gSurfaceHeight-gSampleUI.GetHeight() );
 
     return S_OK;
 }
@@ -758,18 +762,18 @@ HRESULT CALLBACK OnD3D11ResizedSwapChain( ID3D11Device* pd3dDevice, IDXGISwapCha
 void CALLBACK OnD3D11FrameRender( ID3D11Device* pd3dDevice, ID3D11DeviceContext* pd3dImmediateContext, double fTime,
                                   float fElapsedTime, void* pUserContext )
 {
-	// Recompress the texture gFrameDelay frames after the app has started.  This produces more accurate timing of the
-	// compression algorithm.
-	if(gFrameNum == gFrameDelay)
-	{
-		RecompressTexture();
-		gSampleUI.SendEvent(IDC_TEXT, true, gSampleUI.GetStatic(IDC_TEXT));
-		gFrameNum++;
-	}
-	else if(gFrameNum < gFrameDelay)
-	{
-		gFrameNum++;
-	}
+    // Recompress the texture gFrameDelay frames after the app has started.  This produces more accurate timing of the
+    // compression algorithm.
+    if(gFrameNum == gFrameDelay)
+    {
+        RecompressTexture();
+        gSampleUI.SendEvent(IDC_TEXT, true, gSampleUI.GetStatic(IDC_TEXT));
+        gFrameNum++;
+    }
+    else if(gFrameNum < gFrameDelay)
+    {
+        gFrameNum++;
+    }
 
     // If the settings dialog is being shown, then render it instead of rendering the app's scene
     if( gD3DSettingsDlg.IsActive() )
@@ -791,68 +795,68 @@ void CALLBACK OnD3D11FrameRender( ID3D11Device* pd3dDevice, ID3D11DeviceContext*
     // Set the vertex buffer.
     UINT stride = sizeof( Vertex );
     UINT offset = 0;
-	if (gImageView == eImageView_All)
-	{
-		pd3dImmediateContext->IASetVertexBuffers( 0, 1, &gVertexBuffer, &stride, &offset );
-	}
-	else
-	{
-		pd3dImmediateContext->IASetVertexBuffers( 0, 1, &gQuadVB, &stride, &offset );
-	}
-	
+    if (gImageView == eImageView_All)
+    {
+        pd3dImmediateContext->IASetVertexBuffers( 0, 1, &gVertexBuffer, &stride, &offset );
+    }
+    else
+    {
+        pd3dImmediateContext->IASetVertexBuffers( 0, 1, &gQuadVB, &stride, &offset );
+    }
+
     // Set the primitive topology
     pd3dImmediateContext->IASetPrimitiveTopology( D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
 
-	// Update the Constant Buffer
-	D3D11_MAPPED_SUBRESOURCE MappedResource;
+    // Update the Constant Buffer
+    D3D11_MAPPED_SUBRESOURCE MappedResource;
     pd3dImmediateContext->Map( gConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedResource );
     VS_CONSTANT_BUFFER* pConstData = ( VS_CONSTANT_BUFFER* )MappedResource.pData;
-	ZeroMemory(pConstData, sizeof(VS_CONSTANT_BUFFER));
-	SetView(&pConstData->mView);
-	pd3dImmediateContext->Unmap( gConstantBuffer, 0 );
+    ZeroMemory(pConstData, sizeof(VS_CONSTANT_BUFFER));
+    SetView(&pConstData->mView);
+    pd3dImmediateContext->Unmap( gConstantBuffer, 0 );
 
     // Set the shaders
-	ID3D11Buffer* pBuffers[1] = { gConstantBuffer };
-	pd3dImmediateContext->VSSetConstantBuffers( 0, 1, pBuffers );
+    ID3D11Buffer* pBuffers[1] = { gConstantBuffer };
+    pd3dImmediateContext->VSSetConstantBuffers( 0, 1, pBuffers );
     pd3dImmediateContext->VSSetShader( gVertexShader, NULL, 0 );
 
-	if (gSampleUI.GetCheckBox(IDC_ALPHA)->GetChecked())
-	{
-		pd3dImmediateContext->PSSetShader( gRenderAlphaPS, NULL, 0 );
-	}
-	else
-	{
-		pd3dImmediateContext->PSSetShader( gRenderFramePS, NULL, 0 );
-	}
-    
-	// Set the texture sampler.
+    if (gSampleUI.GetCheckBox(IDC_ALPHA)->GetChecked())
+    {
+        pd3dImmediateContext->PSSetShader( gRenderAlphaPS, NULL, 0 );
+    }
+    else
+    {
+        pd3dImmediateContext->PSSetShader( gRenderFramePS, NULL, 0 );
+    }
+
+    // Set the texture sampler.
     pd3dImmediateContext->PSSetSamplers( 0, 1, &gSamPoint );
 
-	// Render the textures.
+    // Render the textures.
 
-	if (gImageView == eImageView_Uncompressed || gImageView == eImageView_All )
-	{
-		pd3dImmediateContext->PSSetShaderResources( 0, 1, &gUncompressedSRV );
-	}
-	else if (gImageView == eImageView_Compressed)
-	{
-		pd3dImmediateContext->PSSetShaderResources( 0, 1, &gCompressedSRV );
-	}
-	else if (gImageView == eImageView_Error)
-	{
-		pd3dImmediateContext->PSSetShaderResources( 0, 1, &gErrorSRV );
+    if (gImageView == eImageView_Uncompressed || gImageView == eImageView_All )
+    {
+        pd3dImmediateContext->PSSetShaderResources( 0, 1, &gUncompressedSRV );
+    }
+    else if (gImageView == eImageView_Compressed)
+    {
+        pd3dImmediateContext->PSSetShaderResources( 0, 1, &gCompressedSRV );
+    }
+    else if (gImageView == eImageView_Error)
+    {
+        pd3dImmediateContext->PSSetShaderResources( 0, 1, &gErrorSRV );
     }
 
     pd3dImmediateContext->Draw( 6, 0 );
 
-	if (gImageView == eImageView_All)
-	{
-		pd3dImmediateContext->PSSetShaderResources( 0, 1, &gCompressedSRV );
-		pd3dImmediateContext->Draw( 6, 6 );
+    if (gImageView == eImageView_All)
+    {
+        pd3dImmediateContext->PSSetShaderResources( 0, 1, &gCompressedSRV );
+        pd3dImmediateContext->Draw( 6, 6 );
 
-		pd3dImmediateContext->PSSetShaderResources( 0, 1, &gErrorSRV );
-		pd3dImmediateContext->Draw( 6, 12 );
-	}	
+        pd3dImmediateContext->PSSetShaderResources( 0, 1, &gErrorSRV );
+        pd3dImmediateContext->Draw( 6, 12 );
+    }
 
     DXUT_BeginPerfEvent( DXUT_PERFEVENTCOLOR, L"HUD / Stats" );
     HRESULT hr;
@@ -862,13 +866,13 @@ void CALLBACK OnD3D11FrameRender( ID3D11Device* pd3dDevice, ID3D11DeviceContext*
     DXUT_EndPerfEvent();
 }
 
-// Release D3D11 resources created in OnD3D11ResizedSwapChain 
+// Release D3D11 resources created in OnD3D11ResizedSwapChain
 void CALLBACK OnD3D11ReleasingSwapChain( void* pUserContext )
 {
     gDialogResourceManager.OnD3D11ReleasingSwapChain();
 }
 
-// Release D3D11 resources created in OnD3D11CreateDevice 
+// Release D3D11 resources created in OnD3D11CreateDevice
 void CALLBACK OnD3D11DestroyDevice( void* pUserContext )
 {
     gDialogResourceManager.OnD3D11DestroyDevice();
@@ -888,5 +892,5 @@ void CALLBACK OnD3D11DestroyDevice( void* pUserContext )
     SAFE_RELEASE( gRenderAlphaPS );
     SAFE_RELEASE( gSamPoint );
 
-	DestroyTextures();
+    DestroyTextures();
 }

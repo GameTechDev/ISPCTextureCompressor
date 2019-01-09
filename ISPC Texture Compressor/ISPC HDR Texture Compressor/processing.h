@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Copyright (c) 2017, Intel Corporation
+// Copyright (c) 2016-2019, Intel Corporation
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
@@ -22,9 +22,9 @@
 
 #pragma once
 
-#include "DXUT.h"
+#include <DXUT.h>
 #include <tchar.h>
-#include "ispc_texcomp.h"
+#include <ispc_texcomp.h>
 
 typedef void (CompressionFunc)(const rgba_surface* input, BYTE* output);
 
@@ -45,13 +45,13 @@ extern ID3D11ShaderResourceView* gErrorSRV; // Shader resource view for the erro
 // Textured vertex.
 struct Vertex
 {
-    D3DXVECTOR3 position;
-	D3DXVECTOR2 texCoord;
+    DirectX::XMFLOAT3 position;
+    DirectX::XMFLOAT2 texCoord;
 };
 
 struct VS_CONSTANT_BUFFER
 {
-	D3DXMATRIX mView;
+    DirectX::XMFLOAT4X4 mView;
     float exposure;
     float padding[3];
 };
