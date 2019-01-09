@@ -1,21 +1,28 @@
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Copyright (c) 2016, Intel Corporation
-// Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated 
-// documentation files (the "Software"), to deal in the Software without restriction, including without limitation 
-// the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
-// permit persons to whom the Software is furnished to do so, subject to the following conditions:
-// The above copyright notice and this permission notice shall be included in all copies or substantial portions of 
-// the Software.
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
-// THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, 
-// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
-// SOFTWARE.
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2016-2019, Intel Corporation
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to
+// deal in the Software without restriction, including without limitation the
+// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+// sell copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+// IN THE SOFTWARE.
+////////////////////////////////////////////////////////////////////////////////
 
 #include <stdint.h>
 
-struct rgba_surface 
+struct rgba_surface
 {
     uint8_t* ptr;
     int32_t width;
@@ -96,14 +103,15 @@ extern "C" void GetProfile_astc_alpha_slow(astc_enc_settings* settings, int bloc
 extern "C" void ReplicateBorders(rgba_surface* dst_slice, const rgba_surface* src_tex, int x, int y, int bpp);
 
 /*
-	Notes:
-	  - input width and height need to be a multiple of block size
-      - LDR input is 32 bit/pixel (sRGB), HDR is 64 bit/pixel (half float)
-	  - dst buffer must be allocated with enough space for the compressed texture:
-		4 bytes/block for BC1/ETC1, 8 bytes/block for BC3/BC6H/BC7/ASTC
-		the blocks are stored in raster scan order (natural CPU texture layout)
-	  - you can use GetProfile_* functions to select various speed/quality tradeoffs.
-	  - the RGB profiles are slightly faster as they ignore the alpha channel
+Notes:
+    - input width and height need to be a multiple of block size
+    - LDR input is 32 bit/pixel (sRGB), HDR is 64 bit/pixel (half float)
+    - dst buffer must be allocated with enough space for the compressed texture:
+        - 8 bytes/block for BC1/ETC1,
+        - 16 bytes/block for BC3/BC6H/BC7/ASTC
+    - the blocks are stored in raster scan order (natural CPU texture layout)
+    - use the GetProfile_* functions to select various speed/quality tradeoffs
+    - the RGB profiles are slightly faster as they ignore the alpha channel
 */
 
 extern "C" void CompressBlocksBC1(const rgba_surface* src, uint8_t* dst);
