@@ -23,10 +23,11 @@
 #include <DirectXTex.h>
 #include <ScreenGrab.h>
 #include <strsafe.h>
+#include <limits>
 #include "processing.h"
 #include "StopWatch.h" // Timer.
 
-CompressionFunc* gCompressionFunc = CompressImageBC1;
+CompressionFunc* gCompressionFunc = nullptr;
 bool gMultithreaded = true;
 
 double gCompTime = 0.0;
@@ -44,7 +45,8 @@ ID3D11InputLayout* gVertexLayout = NULL;
 ID3D11Buffer* gQuadVB = NULL;
 ID3D11Buffer* gConstantBuffer = NULL;
 ID3D11VertexShader* gVertexShader = NULL;
-ID3D11PixelShader* gRenderTexturePS = NULL;
+ID3D11PixelShader* gRenderErrorTexturePS = NULL;
+ID3D11PixelShader* gRenderCompressedTexturePS = NULL;
 ID3D11SamplerState* gSamPoint = NULL;
 
 ID3D11DepthStencilState* gDepthStencilState = NULL;
@@ -438,6 +440,7 @@ void SetIdentity(DirectX::XMFLOAT4X4* mView)
 HRESULT ComputeError(ID3D11ShaderResourceView* uncompressedSRV, ID3D11ShaderResourceView* compressedSRV, ID3D11ShaderResourceView** errorSRV)
 {
     HRESULT hr;
+    ID3D11Device* device = DXUTGetD3D11Device();
 
     // Query the texture description of the uncompressed texture.
     ID3D11Resource* uncompRes;
@@ -445,17 +448,23 @@ HRESULT ComputeError(ID3D11ShaderResourceView* uncompressedSRV, ID3D11ShaderReso
     D3D11_TEXTURE2D_DESC uncompTexDesc;
     ((ID3D11Texture2D*)uncompRes)->GetDesc(&uncompTexDesc);
 
-    // Query the texture description of the uncompressed texture.
+    // Query the texture description of the compressed texture.
     ID3D11Resource* compRes;
     gCompressedSRV->GetResource(&compRes);
     D3D11_TEXTURE2D_DESC compTexDesc;
     ((ID3D11Texture2D*)compRes)->GetDesc(&compTexDesc);
 
     // Create a 2D resource without gamma correction for the two textures.
-    compTexDesc.Format = GetNonSRGBFormat(compTexDesc.Format);
-    uncompTexDesc.Format = GetNonSRGBFormat(uncompTexDesc.Format);
-
-    ID3D11Device* device = DXUTGetD3D11Device();
+    if (IsBC6H(gCompressionFunc))
+    {
+        compTexDesc.Format = DXGI_FORMAT_BC6H_UF16;
+        uncompTexDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+    }
+    else
+    {
+        compTexDesc.Format = GetNonSRGBFormat(compTexDesc.Format);
+        uncompTexDesc.Format = GetNonSRGBFormat(uncompTexDesc.Format);
+    }
 
     ID3D11Texture2D* uncompTex;
     device->CreateTexture2D(&uncompTexDesc, NULL, &uncompTex);
@@ -576,7 +585,14 @@ HRESULT ComputeError(ID3D11ShaderResourceView* uncompressedSRV, ID3D11ShaderReso
     ID3D11Buffer* pBuffers[1] = { gConstantBuffer };
     deviceContext->VSSetConstantBuffers( 0, 1, pBuffers );
     deviceContext->VSSetShader(gVertexShader, NULL, 0);
-    deviceContext->PSSetShader(gRenderTexturePS, NULL, 0);
+    if (IsBC6H(gCompressionFunc))
+    {
+        deviceContext->PSSetShader(gRenderCompressedTexturePS, NULL, 0);
+    }
+    else
+    {
+        deviceContext->PSSetShader(gRenderErrorTexturePS, NULL, 0);
+    }
 
     // Set the texture sampler.
     deviceContext->PSSetSamplers(0, 1, &gSamPoint);
@@ -648,15 +664,59 @@ HRESULT ComputeError(ID3D11ShaderResourceView* uncompressedSRV, ID3D11ShaderReso
     // Copy the error texture into the copy....
     deviceContext->CopyResource(errorTexCopy, errorTex);
 
-    // Map the staging resource.
-    D3D11_MAPPED_SUBRESOURCE errorData;
-    V_RETURN(deviceContext->Map(errorTexCopy, D3D11CalcSubresource(0, 0, 1), D3D11_MAP_READ, 0, &errorData));
-
     // Calculate PSNR
-    ComputeRMSE((const BYTE *)(errorData.pData), errorTexCopyDesc.Width, errorTexCopyDesc.Height);
+    if (!IsBC6H(gCompressionFunc))
+    {
+        D3D11_MAPPED_SUBRESOURCE errorData;
+        V_RETURN(deviceContext->Map(errorTexCopy, D3D11CalcSubresource(0, 0, 1), D3D11_MAP_READ, 0, &errorData));
 
-    // Unmap the staging resources.
-    deviceContext->Unmap(errorTexCopy, D3D11CalcSubresource(0, 0, 1));
+        ComputeRMSE((const BYTE *)(errorData.pData), errorTexCopyDesc.Width, errorTexCopyDesc.Height);
+
+        deviceContext->Unmap(errorTexCopy, D3D11CalcSubresource(0, 0, 1));
+    }
+    else
+    {
+        // Create a staging resource for the uncompressed texture.
+        //uncompTexDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+        uncompTexDesc.Usage = D3D11_USAGE_STAGING;
+        uncompTexDesc.BindFlags = 0;
+        uncompTexDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE;
+        ID3D11Texture2D* uncompStgTex;
+        V_RETURN(device->CreateTexture2D(&uncompTexDesc, NULL, &uncompStgTex));
+
+        // Copy the uncompressed texture into the staging resource.
+        ID3D11DeviceContext* deviceContext = DXUTGetD3D11DeviceContext();
+        deviceContext->CopyResource(uncompStgTex, uncompRes);
+
+        // Map the staging resources.
+        D3D11_MAPPED_SUBRESOURCE uncompData;
+        V_RETURN(deviceContext->Map(uncompStgTex, D3D11CalcSubresource(0, 0, 1), D3D11_MAP_READ, 0, &uncompData));
+
+        // Map the staging resource.
+        D3D11_MAPPED_SUBRESOURCE rawData;
+        V_RETURN(deviceContext->Map(errorTexCopy, D3D11CalcSubresource(0, 0, 1), D3D11_MAP_READ, 0, &rawData));
+        //V_RETURN(deviceContext->Map(rawTexCopy, D3D11CalcSubresource(0, 0, 1), D3D11_MAP_READ, 0, &rawData));
+
+        rgba_surface input;
+        input.ptr = (BYTE*)uncompData.pData;
+        input.stride = uncompData.RowPitch;
+        input.width = uncompTexDesc.Width;
+        input.height = uncompTexDesc.Height;
+
+        rgba_surface raw;
+        raw.ptr = (BYTE*)rawData.pData;
+        raw.stride = rawData.RowPitch;
+        raw.width = uncompTexDesc.Width;
+        raw.height = uncompTexDesc.Height;
+
+        ComputeErrorMetrics(&input, &raw);
+
+        deviceContext->Unmap(uncompStgTex, D3D11CalcSubresource(0, 0, 1));
+        deviceContext->Unmap(errorTexCopy, D3D11CalcSubresource(0, 0, 1));
+
+        SAFE_RELEASE(uncompStgTex);
+        //SAFE_RELEASE(rawTexCopy);
+    }
 
     // Release resources.
     SAFE_RELEASE(errorRTV);
@@ -721,6 +781,21 @@ HRESULT DisableDepthTest()
     return S_OK;
 }
 
+inline float half2float(uint16_t value)
+{
+    float out;
+    int abs = value & 0x7FFF;
+    if (abs > 0x7C00)
+        out = std::numeric_limits<float>::quiet_NaN();
+    else if (abs == 0x7C00)
+        out = std::numeric_limits<float>::infinity();
+    else if (abs > 0x3FF)
+        out = std::ldexp(static_cast<float>((value & 0x3FF) | 0x400), (abs >> 10) - 15 - 10);
+    else
+        out = std::ldexp(static_cast<float>(abs), -24);
+    return (value & 0x8000) ? -out : out;
+}
+
 void ComputeRMSE(const BYTE *errorData, const INT width, const INT height)
 {
     double sum_sq_rgb = 0.0;
@@ -744,6 +819,36 @@ void ComputeRMSE(const BYTE *errorData, const INT width, const INT height)
 
     gError = 10 * log10((255.0 * 255.0*3)/(sum_sq_rgb));
     gError2 = 10 * log10((255.0 * 255.0*4)/(sum_sq_rgb+sum_sq_alpha));
+}
+
+void ComputeErrorMetrics(rgba_surface* input, rgba_surface* raw)
+{
+    float metric = 0.0f;
+
+    for (int y = 0; y < input->height; y++)
+    for (int x = 0; x < input->width; x++)
+    {
+        uint16_t* rgb_a_fp16 = (uint16_t*)&input->ptr[input->stride*y + x * 8];
+        uint16_t* rgb_b_fp16 = (uint16_t*)&raw->ptr[raw->stride*y + x * 8];
+
+        float rgb_a[3], rgb_b[3];
+        for (int p = 0; p < 3; p++)
+        {
+            rgb_a[p] = half2float(max(1, rgb_a_fp16[p]));
+            rgb_b[p] = half2float(max(1, rgb_b_fp16[p]));
+        }
+
+        for (int p = 0; p < 3; p++)
+        {
+            float Ta = logf(rgb_a[p]) / logf(2);
+            float Tb = logf(rgb_b[p]) / logf(2);
+            metric += fabs(Ta - Tb);
+        }
+    }
+
+    int samples = input->height*input->width * 3;
+    gError = 100 * (metric / samples);
+    gError2 = 0;
 }
 
 #define CHECK_WIN_THREAD_FUNC(x) \
@@ -985,14 +1090,27 @@ int GetBytesPerBlock(CompressionFunc* fn)
 
         case DXGI_FORMAT_BC3_UNORM_SRGB:
         case DXGI_FORMAT_BC7_UNORM_SRGB:
+        case DXGI_FORMAT_BC6H_UF16:
             return 16;
     }
+}
+
+bool IsBC6H(CompressionFunc* fn)
+{
+    return
+        fn == CompressImageBC6H_veryfast ||
+        fn == CompressImageBC6H_fast ||
+        fn == CompressImageBC6H_basic ||
+        fn == CompressImageBC6H_slow ||
+        fn == CompressImageBC6H_veryslow;
 }
 
 DXGI_FORMAT GetFormatFromCompressionFunc(CompressionFunc* fn)
 {
     if (fn == CompressImageBC1) return DXGI_FORMAT_BC1_UNORM_SRGB;
     if (fn == CompressImageBC3) return DXGI_FORMAT_BC3_UNORM_SRGB;
+
+    if (IsBC6H(fn)) return DXGI_FORMAT_BC6H_UF16;
 
     return DXGI_FORMAT_BC7_UNORM_SRGB;
 }
@@ -1006,6 +1124,20 @@ void CompressImageBC3(const rgba_surface* input, BYTE* output)
 {
     CompressBlocksBC3(input, output);
 }
+
+#define DECLARE_CompressImageBC6H_profile(profile)                              \
+void CompressImageBC6H_ ## profile(const rgba_surface* input, BYTE* output)     \
+{                                                                               \
+    bc6h_enc_settings settings;                                                 \
+    GetProfile_bc6h_ ## profile(&settings);                                     \
+    CompressBlocksBC6H(input, output, &settings);                               \
+}
+
+DECLARE_CompressImageBC6H_profile(veryfast);
+DECLARE_CompressImageBC6H_profile(fast);
+DECLARE_CompressImageBC6H_profile(basic);
+DECLARE_CompressImageBC6H_profile(slow);
+DECLARE_CompressImageBC6H_profile(veryslow);
 
 #define DECLARE_CompressImageBC7_profile(profile)                               \
 void CompressImageBC7_ ## profile(const rgba_surface* input, BYTE* output)      \

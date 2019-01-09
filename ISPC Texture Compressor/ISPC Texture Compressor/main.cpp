@@ -57,6 +57,7 @@ EImageView gImageView = eImageView_Compressed;
 int gViewZoomStep = 0;
 int gViewTranslationX = 0;
 int gViewTranslationY = 0;
+float gLog2Exposure = 0;
 
 ID3D11Buffer* gVertexBuffer = NULL;
 ID3D11Buffer* gIndexBuffer = NULL;
@@ -75,6 +76,7 @@ enum
     IDC_RECOMPRESS,
     IDC_IMAGEVIEW,
     IDC_ALPHA,
+    IDC_EXPOSURE,
     IDC_LOAD_TEXTURE,
     IDC_SAVE_TEXTURE
 };
@@ -103,7 +105,48 @@ void CALLBACK OnD3D11FrameRender( ID3D11Device* pd3dDevice, ID3D11DeviceContext*
 void InitApp();
 void RenderText();
 
-void FillProfiles(BOOL DX11Available);
+void SetCompressionFunc(CompressionFunc* func)
+{
+    // Switch textures when we switch between BC6H and non-BC6H
+    // TODO: This is not ideal if a user-loaded texture, probably better to only list compression
+    // modes relevant to the texture format and make loading the two provided textures a separate UI
+    bool wasBC6H = IsBC6H(gCompressionFunc);
+    bool isBC6H = IsBC6H(func);
+    bool createTextures = gCompressionFunc == nullptr || isBC6H != wasBC6H;
+
+    // Set the new compression function
+    gCompressionFunc = func;
+
+    {
+        CDXUTComboBox *comboBox = gSampleUI.GetComboBox(IDC_PROFILE);
+        comboBox->SetSelectedByData((void *) func);
+    }
+
+    // TODO: Currently, only eImageView_Compressed is implemented for BC6H textures
+    {
+        CDXUTComboBox *comboBox = gSampleUI.GetComboBox(IDC_IMAGEVIEW);
+        if (isBC6H)
+        {
+            comboBox->SetEnabled(false);
+            gImageView = eImageView_Compressed;
+        }
+        else
+        {
+            comboBox->SetEnabled(true);
+            gImageView = (EImageView)(INT_PTR)gSampleUI.GetComboBox(IDC_IMAGEVIEW)->GetSelectedData();
+        }
+    }
+
+    if (createTextures)
+    {
+        HRESULT hr;
+        WCHAR path[MAX_PATH];
+        V(DXUTFindDXSDKMediaFileCch(path, MAX_PATH, isBC6H ? L"Images\\Desk_21_hdr.dds" : L"Images\\quadTexture_wAlpha_1k.dds"));
+        V(CreateTextures(path));
+    }
+
+    gSampleUI.SendEvent(IDC_RECOMPRESS, true, gSampleUI.GetButton(IDC_RECOMPRESS));
+}
 
 int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow )
 {
@@ -140,8 +183,6 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
     // Try to create a device with DX11 feature set
     DXUTCreateDevice (D3D_FEATURE_LEVEL_11_0, true, 1280, 1024 );
 
-    BOOL DX11Available = false;
-
     // If we don't have an adequate driver, then we revert to DX10 feature set...
     DXUTDeviceSettings settings = DXUTGetDeviceSettings();
     if(settings.d3d11.DriverType == D3D_DRIVER_TYPE_UNKNOWN || settings.d3d11.DriverType == D3D_DRIVER_TYPE_NULL) {
@@ -156,10 +197,25 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
     }
     else
     {
-        DX11Available = true;
+        CDXUTComboBox *comboBox = gSampleUI.GetComboBox(IDC_PROFILE);
+        comboBox->AddItem(L"BC6H veryfast", (void *)(CompressImageBC6H_veryfast));
+        comboBox->AddItem(L"BC6H fast", (void *)(CompressImageBC6H_fast));
+        comboBox->AddItem(L"BC6H basic", (void *)(CompressImageBC6H_basic));
+        comboBox->AddItem(L"BC6H slow", (void *)(CompressImageBC6H_slow));
+        comboBox->AddItem(L"BC6H veryslow", (void *)(CompressImageBC6H_veryslow));
+        comboBox->AddItem(L"BC7 ultrafast (RGB)", (void *)(CompressImageBC7_ultrafast));
+        comboBox->AddItem(L"BC7 veryfast (RGB)", (void *)(CompressImageBC7_veryfast));
+        comboBox->AddItem(L"BC7 fast (RGB)", (void *)(CompressImageBC7_fast));
+        comboBox->AddItem(L"BC7 basic (RGB)", (void *)(CompressImageBC7_basic));
+        comboBox->AddItem(L"BC7 slow (RGB)", (void *)(CompressImageBC7_slow));
+        comboBox->AddItem(L"BC7 alpha-ufast (RGBA)", (void *)(CompressImageBC7_alpha_ultrafast));
+        comboBox->AddItem(L"BC7 alpha-vfast (RGBA)", (void *)(CompressImageBC7_alpha_veryfast));
+        comboBox->AddItem(L"BC7 alpha-fast (RGBA)", (void *)(CompressImageBC7_alpha_fast));
+        comboBox->AddItem(L"BC7 alpha-basic (RGBA)", (void *)(CompressImageBC7_alpha_basic));
+        comboBox->AddItem(L"BC7 alpha-slow (RGBA)", (void *)(CompressImageBC7_alpha_slow));
     }
 
-    FillProfiles(DX11Available);
+    SetCompressionFunc(CompressImageBC1);
 
     DXUTMainLoop();
 
@@ -174,30 +230,38 @@ void InitApp()
 {
     // Initialize dialogs
     gD3DSettingsDlg.Init(&gDialogResourceManager);
-    gHUD.Init(&gDialogResourceManager);
-    gSampleUI.Init(&gDialogResourceManager);
 
-    gHUD.SetCallback(OnGUIEvent);
     int x = 0;
     int y = 10;
+    gHUD.Init(&gDialogResourceManager);
+    gHUD.SetCallback(OnGUIEvent);
     gHUD.AddButton(IDC_TOGGLEFULLSCREEN, L"Toggle full screen", x, y, 170, 23);
     gHUD.AddButton(IDC_TOGGLEREF, L"Toggle REF (F3)", x, y += 26, 170, 23, VK_F3);
     gHUD.AddButton(IDC_CHANGEDEVICE, L"Change device (F2)", x, y += 26, 170, 23, VK_F2);
     gHUD.SetSize( 170, 170 );
 
-    gSampleUI.SetCallback(OnGUIEvent);
     x = 0;
     y = 0;
-    gSampleUI.AddStatic(IDC_TEXT, L"", x, y, 1, 1); y += 5*22;
+    gSampleUI.Init(&gDialogResourceManager);
+    gSampleUI.SetCallback(OnGUIEvent);
+    gSampleUI.AddStatic(IDC_TEXT, L"", x, y, 1, 1); y += 6*22;
     gSampleUI.AddComboBox(IDC_PROFILE, x, y, 226, 22); y += 26;
     gSampleUI.AddCheckBox(IDC_MT, L"Multithreaded", x, y, 125, 22, gMultithreaded);
     gSampleUI.AddButton(IDC_RECOMPRESS, L"Recompress", x + 131, y, 125, 22); y += 26;
     gSampleUI.AddComboBox(IDC_IMAGEVIEW, x, y, 145, 22);
     gSampleUI.AddCheckBox(IDC_ALPHA, L"Show Alpha", x + 151, y, 105, 22); y += 26;
+    gSampleUI.AddSlider(IDC_EXPOSURE, x, y, 250, 22); y += 26;
     gSampleUI.AddButton(IDC_LOAD_TEXTURE, L"Load Texture", x, y, 125, 22);
     gSampleUI.AddButton(IDC_SAVE_TEXTURE, L"Save Texture", x + 131, y, 125, 22); y += 26;
 
     gSampleUI.SetSize( 276, y+150 );
+
+    {
+        CDXUTComboBox *comboBox = gSampleUI.GetComboBox(IDC_PROFILE);
+        comboBox->AddItem(L"BC1 (RGB)", (void *)(CompressImageBC1));
+        comboBox->AddItem(L"BC3 (RGBA)", (void *)(CompressImageBC3));
+        // Other options only added after D3D device created if DX11 available
+    }
 
     {
         CDXUTComboBox *comboBox = gSampleUI.GetComboBox(IDC_IMAGEVIEW);
@@ -207,32 +271,6 @@ void InitApp()
         comboBox->AddItem(L"All", (void *)(eImageView_All));
         comboBox->SetSelectedByData((void *)(gImageView));
     }
-
-    gSampleUI.SendEvent(IDC_TEXT, true, gSampleUI.GetStatic(IDC_TEXT));
-}
-
-void FillProfiles(BOOL DX11Available)
-{
-    CDXUTComboBox *comboBox = gSampleUI.GetComboBox(IDC_PROFILE);
-    comboBox->AddItem(L"BC1 (RGB)", (void *)(CompressImageBC1));
-    comboBox->AddItem(L"BC3 (RGBA)", (void *)(CompressImageBC3));
-    if (DX11Available)
-    {
-        comboBox->AddItem(L"BC7 ultrafast (RGB)", (void *)(CompressImageBC7_ultrafast));
-        comboBox->AddItem(L"BC7 veryfast (RGB)", (void *)(CompressImageBC7_veryfast));
-        comboBox->AddItem(L"BC7 fast (RGB)", (void *)(CompressImageBC7_fast));
-        comboBox->AddItem(L"BC7 basic (RGB)", (void *)(CompressImageBC7_basic));
-        comboBox->AddItem(L"BC7 slow (RGB)", (void *)(CompressImageBC7_slow));
-        comboBox->AddItem(L"BC7 alpha-ufast (RGBA)", (void *)(CompressImageBC7_alpha_ultrafast));
-        comboBox->AddItem(L"BC7 alpha-vfast (RGBA)", (void *)(CompressImageBC7_alpha_veryfast));
-        comboBox->AddItem(L"BC7 alpha-fast (RGBA)", (void *)(CompressImageBC7_alpha_fast));
-        comboBox->AddItem(L"BC7 alpha-basic (RGBA)", (void *)(CompressImageBC7_alpha_basic));
-        comboBox->AddItem(L"BC7 alpha-slow (RGBA)", (void *)(CompressImageBC7_alpha_slow));
-
-        comboBox->SetDropHeight((12-1)*17);
-    }
-
-    comboBox->SetSelectedByData((void *)(gCompressionFunc));
 }
 
 // Called right before creating a D3D11 device, allowing the app to modify the device settings as needed
@@ -444,6 +482,13 @@ void CALLBACK OnGUIEvent( UINT nEvent, int nControlID, CDXUTControl* pControl, v
             gD3DSettingsDlg.SetActive( !gD3DSettingsDlg.IsActive() );
             break;
         }
+        case IDC_EXPOSURE:
+        {
+            gLog2Exposure = (gSampleUI.GetSlider(IDC_EXPOSURE)->GetValue() / 100.0f - 0.5f) * 33.33333f;
+
+            gSampleUI.SendEvent(IDC_TEXT, true, gSampleUI.GetStatic(IDC_TEXT));
+            break;
+        }
         case IDC_TEXT:
         {
             WCHAR wstr[MAX_PATH];
@@ -451,10 +496,12 @@ void CALLBACK OnGUIEvent( UINT nEvent, int nControlID, CDXUTControl* pControl, v
                 L"Texture Size: %d x %d\n"
                 L"RGB PSNR: %.2f dB\n"
                 L"RGBA PSNR: %.2f dB\n"
+                L"Exposure: %.2f\n"
                 L"Compression Time: %0.2f ms\n"
                 L"Compression Rate: %0.2f Mp/s\n",
                 gTexWidth, gTexHeight,
                 gError, gError2,
+                gLog2Exposure,
                 gCompTime, gCompRate);
             gSampleUI.GetStatic(IDC_TEXT)->SetText(wstr);
             break;
@@ -465,26 +512,18 @@ void CALLBACK OnGUIEvent( UINT nEvent, int nControlID, CDXUTControl* pControl, v
             DestroyThreads();
 
             gMultithreaded = gSampleUI.GetCheckBox(IDC_MT)->GetChecked();
-
             if (gMultithreaded)
             {
                 InitWin32Threads();
             }
 
-            // Recompress the texture.
-            RecompressTexture();
-            gSampleUI.SendEvent(IDC_TEXT, true, gSampleUI.GetStatic(IDC_TEXT));
-
+            gSampleUI.SendEvent(IDC_RECOMPRESS, true, gSampleUI.GetButton(IDC_RECOMPRESS));
             break;
         }
         case IDC_PROFILE:
         {
-            gCompressionFunc = (CompressionFunc*)gSampleUI.GetComboBox(IDC_PROFILE)->GetSelectedData();
-
-            // Recompress the texture.
-            RecompressTexture();
-            gSampleUI.SendEvent(IDC_TEXT, true, gSampleUI.GetStatic(IDC_TEXT));
-
+            CDXUTComboBox* comboBox = (CDXUTComboBox*) pControl;
+            SetCompressionFunc((CompressionFunc*) comboBox->GetSelectedData());
             break;
         }
         case IDC_LOAD_TEXTURE:
@@ -518,10 +557,9 @@ void CALLBACK OnGUIEvent( UINT nEvent, int nControlID, CDXUTControl* pControl, v
         }
         case IDC_RECOMPRESS:
         {
-            // Recompress the texture.
             RecompressTexture();
-            gSampleUI.SendEvent(IDC_TEXT, true, gSampleUI.GetStatic(IDC_TEXT));
 
+            gSampleUI.SendEvent(IDC_TEXT, true, gSampleUI.GetStatic(IDC_TEXT));
             break;
         }
         case IDC_SAVE_TEXTURE:
@@ -624,8 +662,12 @@ HRESULT CALLBACK OnD3D11CreateDevice( ID3D11Device* pd3dDevice, const DXGI_SURFA
     V_RETURN(pd3dDevice->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, &gRenderFramePS));
 
     // Create a pixel shader that renders the error texture.
-    V_RETURN(CompileShaderFromFile((WCHAR*) L"shaders.hlsl", "RenderTexturePS", "ps_4_0", &pixelShaderBuffer));
-    V_RETURN(pd3dDevice->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, &gRenderTexturePS));
+    V_RETURN(CompileShaderFromFile((WCHAR*) L"shaders.hlsl", "RenderErrorTexturePS", "ps_4_0", &pixelShaderBuffer));
+    V_RETURN(pd3dDevice->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, &gRenderErrorTexturePS));
+
+    // Create a pixel shader that renders the compressed texture.
+    V_RETURN(CompileShaderFromFile((WCHAR*) L"shaders.hlsl", "RenderCompressedTexturePS", "ps_4_0", &pixelShaderBuffer));
+    V_RETURN(pd3dDevice->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, &gRenderCompressedTexturePS));
 
     // Create a pixel shader that shows alpha
     V_RETURN(CompileShaderFromFile((WCHAR*) L"shaders.hlsl", "RenderAlphaPS", "ps_4_0", &pixelShaderBuffer));
@@ -730,14 +772,6 @@ HRESULT CALLBACK OnD3D11CreateDevice( ID3D11Device* pd3dDevice, const DXGI_SURFA
     SamDesc.MaxLOD = D3D11_FLOAT32_MAX;
     V_RETURN(pd3dDevice->CreateSamplerState(&SamDesc, &gSamPoint));
 
-    // Load and initialize the textures.
-    WCHAR path[MAX_PATH];
-    V_RETURN(DXUTFindDXSDKMediaFileCch(path, MAX_PATH, L"Images\\quadTexture_wAlpha_1k.dds"));
-    V_RETURN(CreateTextures(path));
-
-    // Update the UI's texture width and height.
-    gSampleUI.SendEvent(IDC_TEXT, true, gSampleUI.GetStatic(IDC_TEXT));
-
     return S_OK;
 }
 
@@ -753,7 +787,7 @@ HRESULT CALLBACK OnD3D11ResizedSwapChain( ID3D11Device* pd3dDevice, IDXGISwapCha
     gSurfaceHeight = pBackBufferSurfaceDesc->Height;
 
     gHUD.SetLocation( gSurfaceWidth - gHUD.GetWidth(), 0 );
-    gSampleUI.SetLocation( gSurfaceWidth-gSampleUI.GetWidth(), gSurfaceHeight-gSampleUI.GetHeight() );
+    gSampleUI.SetLocation( gSurfaceWidth-gSampleUI.GetWidth(), gHUD.GetHeight() + 10 );
 
     return S_OK;
 }
@@ -766,8 +800,7 @@ void CALLBACK OnD3D11FrameRender( ID3D11Device* pd3dDevice, ID3D11DeviceContext*
     // compression algorithm.
     if(gFrameNum == gFrameDelay)
     {
-        RecompressTexture();
-        gSampleUI.SendEvent(IDC_TEXT, true, gSampleUI.GetStatic(IDC_TEXT));
+        gSampleUI.SendEvent(IDC_RECOMPRESS, true, gSampleUI.GetButton(IDC_RECOMPRESS));
         gFrameNum++;
     }
     else if(gFrameNum < gFrameDelay)
@@ -813,6 +846,11 @@ void CALLBACK OnD3D11FrameRender( ID3D11Device* pd3dDevice, ID3D11DeviceContext*
     VS_CONSTANT_BUFFER* pConstData = ( VS_CONSTANT_BUFFER* )MappedResource.pData;
     ZeroMemory(pConstData, sizeof(VS_CONSTANT_BUFFER));
     SetView(&pConstData->mView);
+    if (IsBC6H(gCompressionFunc)) {
+        pConstData->exposure = powf(2.0, gLog2Exposure);
+    } else {
+        pConstData->exposure = 1.f;
+    }
     pd3dImmediateContext->Unmap( gConstantBuffer, 0 );
 
     // Set the shaders
@@ -828,6 +866,8 @@ void CALLBACK OnD3D11FrameRender( ID3D11Device* pd3dDevice, ID3D11DeviceContext*
     {
         pd3dImmediateContext->PSSetShader( gRenderFramePS, NULL, 0 );
     }
+
+    pd3dImmediateContext->PSSetConstantBuffers(0, 1, pBuffers );
 
     // Set the texture sampler.
     pd3dImmediateContext->PSSetSamplers( 0, 1, &gSamPoint );
@@ -888,7 +928,8 @@ void CALLBACK OnD3D11DestroyDevice( void* pUserContext )
     SAFE_RELEASE( gConstantBuffer );
     SAFE_RELEASE( gVertexShader );
     SAFE_RELEASE( gRenderFramePS );
-    SAFE_RELEASE( gRenderTexturePS );
+    SAFE_RELEASE( gRenderErrorTexturePS );
+    SAFE_RELEASE( gRenderCompressedTexturePS );
     SAFE_RELEASE( gRenderAlphaPS );
     SAFE_RELEASE( gSamPoint );
 

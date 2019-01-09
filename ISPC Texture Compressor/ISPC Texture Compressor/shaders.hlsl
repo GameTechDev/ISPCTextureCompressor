@@ -28,6 +28,7 @@ SamplerState gSampler : register( s0 );
 cbuffer cb0
 {
     row_major float4x4 mView;
+    float exposure_mul;
 };
 
 struct VS_INPUT
@@ -58,7 +59,7 @@ float4 RenderFramePS(VS_OUTPUT Input) : SV_TARGET
 {
     float4 texel = gTexture.Sample(gSampler, Input.vTexcoord);
 
-    return texel;
+    return texel*exposure_mul;
 }
 
 float4 RenderAlphaPS(VS_OUTPUT Input) : SV_TARGET
@@ -71,11 +72,18 @@ float4 RenderAlphaPS(VS_OUTPUT Input) : SV_TARGET
 }
 
 // Render to texture pixel shader.
-float4 RenderTexturePS(VS_OUTPUT Input) : SV_TARGET
+float4 RenderErrorTexturePS(VS_OUTPUT Input) : SV_TARGET
 {
     float4 uncompressed = gTexture.Sample(gSampler, Input.vTexcoord);
     float4 compressed = gCompressedTexture.Sample(gSampler, Input.vTexcoord);
     float4 error = abs(compressed - uncompressed);
 
     return error;
+}
+
+// Render to texture pixel shader.
+float4 RenderCompressedTexturePS(VS_OUTPUT Input) : SV_TARGET
+{
+    float4 compressed = gCompressedTexture.Sample(gSampler, Input.vTexcoord);
+    return compressed;
 }

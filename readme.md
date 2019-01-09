@@ -51,10 +51,7 @@ changes.
 * The build projects use Visual Studio 2017, Windows Tools 1.4.1, and the Windows 10 April 2018 Update SDK (17134)
 * A Windows binary of ISPC version 1.8.2 is included
 * Use `ISPC Texture Compressor\ispc_texcomp\ispc_texcomp.vcxproj` to build the ISPC Texture Compressor library
-* Use `ISPC Texture Compressor\ISPC Texture Compressor.sln` to build and run a sample application that demonstrates the tradeoffs between the
-BC1, BC3, and BC7 variants
-* Use `ISPC Texture Compressor\ISPC HDR Texture Compressor.sln` to build and run a sample application that demonstrates the tradeoffs between the BC6H profiles
-
+* Use `ISPC Texture Compressor\ISPC Texture Compressor.sln` to build and run a sample application that demonstrates the tradeoffs between the supported compression variants
 
 #### Mac OS X:
 * Xcode project file included only for compressor itself, not for the examples.

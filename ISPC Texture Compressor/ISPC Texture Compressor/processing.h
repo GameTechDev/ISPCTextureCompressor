@@ -52,13 +52,16 @@ struct Vertex
 struct VS_CONSTANT_BUFFER
 {
     DirectX::XMFLOAT4X4 mView;
+    float exposure;
+    float padding[3];
 };
 
 extern ID3D11InputLayout* gVertexLayout;
 extern ID3D11Buffer* gQuadVB;
 extern ID3D11Buffer* gConstantBuffer;
 extern ID3D11VertexShader* gVertexShader;
-extern ID3D11PixelShader* gRenderTexturePS;
+extern ID3D11PixelShader* gRenderErrorTexturePS;
+extern ID3D11PixelShader* gRenderCompressedTexturePS;
 extern ID3D11SamplerState* gSamPoint;
 
 void Initialize();
@@ -72,6 +75,7 @@ HRESULT ComputeError(ID3D11ShaderResourceView* uncompressedSRV, ID3D11ShaderReso
 HRESULT RecompressTexture();
 
 void ComputeRMSE(const BYTE *errorData, const INT width, const INT height);
+void ComputeErrorMetrics(rgba_surface* input, rgba_surface* raw);
 
 void InitWin32Threads();
 void DestroyThreads();
@@ -86,10 +90,16 @@ VOID CompressImageMT(const rgba_surface* input, BYTE* output);
 DWORD WINAPI CompressImageMT_Thread( LPVOID lpParam );
 
 int GetBytesPerBlock(CompressionFunc* fn);
+bool IsBC6H(CompressionFunc* fn);
 DXGI_FORMAT GetFormatFromCompressionFunc(CompressionFunc* fn);
 
 void CompressImageBC1(const rgba_surface* input, BYTE* output);
 void CompressImageBC3(const rgba_surface* input, BYTE* output);
+void CompressImageBC6H_veryfast(const rgba_surface* input, BYTE* output);
+void CompressImageBC6H_fast(const rgba_surface* input, BYTE* output);
+void CompressImageBC6H_basic(const rgba_surface* input, BYTE* output);
+void CompressImageBC6H_slow(const rgba_surface* input, BYTE* output);
+void CompressImageBC6H_veryslow(const rgba_surface* input, BYTE* output);
 void CompressImageBC7_ultrafast(const rgba_surface* input, BYTE* output);
 void CompressImageBC7_veryfast(const rgba_surface* input, BYTE* output);
 void CompressImageBC7_fast(const rgba_surface* input, BYTE* output);
