@@ -1,5 +1,5 @@
 CXX ?= g++
-ISPC ?= ./ispc_linux
+ISPC ?= ../ISPC/linux/ispc
 CXXFLAGS ?= -O2 -msse2 -fPIC -I.
 ISPC_FLAGS ?= -O2 --arch=x86-64 --target=sse2,avx --opt=fast-math --pic
 LDFLAGS ?= -shared -rdynamic

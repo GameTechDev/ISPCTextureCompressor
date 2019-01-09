@@ -148,7 +148,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "chmod 755 ispc_osx\n./ispc_osx -O2 ispc_texcomp/kernel.ispc -o \"$OBJROOT/kernel.o\" -h ispc_texcomp/kernel_ispc.h --arch=x86-64 --target=sse2,avx --opt=fast-math\n./ispc_osx -O2 ispc_texcomp/kernel_astc.ispc -o \"$OBJROOT/kernel_astc.o\" -h ispc_texcomp/kernel_astc_ispc.h --arch=x86-64 --target=sse2 --opt=fast-math";
+            shellScript = "chmod 755 ../ISPC/osx/ispc\n../ISPC/osx/ispc -O2 ispc_texcomp/kernel.ispc -o \"$OBJROOT/kernel.o\" -h ispc_texcomp/kernel_ispc.h --arch=x86-64 --target=sse2,avx --opt=fast-math\n../ISPC/osx/ispc -O2 ispc_texcomp/kernel_astc.ispc -o \"$OBJROOT/kernel_astc.o\" -h ispc_texcomp/kernel_astc_ispc.h --arch=x86-64 --target=sse2 --opt=fast-math";
 		};
 /* End PBXShellScriptBuildPhase section */
 

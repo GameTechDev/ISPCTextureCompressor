@@ -46,21 +46,28 @@ changes.
 
 ## Build Instructions
 
+Binaries for ISPC v1.9.2 need to be obtained separately (e.g., from [the ISPC
+repo](https://ispc.github.io/downloads.html) or [the sourceforge
+mirror](http://sourceforge.net/projects/ispcmirror/files/v1.9.2/)).  Download
+the appropriate compiler for your target, and place the binary in the following
+directories:
+
+ - ISPC/linux/
+ - ISPC/osx/
+ - ISPC/win/
+
 #### Windows
 
 * The build projects use Visual Studio 2017, Windows Tools 1.4.1, and the Windows 10 April 2018 Update SDK (17134)
-* A Windows binary of ISPC version 1.8.2 is included
 * Use `ISPC Texture Compressor\ispc_texcomp\ispc_texcomp.vcxproj` to build the ISPC Texture Compressor library
 * Use `ISPC Texture Compressor\ISPC Texture Compressor.sln` to build and run a sample application that demonstrates the tradeoffs between the supported compression variants
 
 #### Mac OS X:
-* Xcode project file included only for compressor itself, not for the examples.
-* You'll need to get ISPC compiler version [1.8.2 build](https://sf.net/projects/ispcmirror) and put the compiler executable into `ISPC Texture Compressor/ispc_osx`.
-* Use `ISPC Texture Compressor/ispc_texcomp.xcodeproj`, tested with Xcode 7.3.
-* Minimum OS X deployment version set to 10.9.
-* dylib install name is set to `@executable_path/../Frameworks/$(EXECUTABLE_PATH)`
+* The build has been tested with Xcode 7.3 with minimum OS X deployment version set to 10.9
+* Use `ISPC Texture Compressor/ispc_texcomp.xcodeproj` to build the ISPC Texture Compressor library
+ * dylib install name is set to `@executable_path/../Frameworks/$(EXECUTABLE_PATH)`
+* The sample application is not available on OSX.
 
 #### Linux:
-* Makefile included only for compressor itself, not for the examples.
-* You'll need to get ISPC compiler version [1.8.2 build](https://sf.net/projects/ispcmirror) and put the compiler executable into `ISPC Texture Compressor/ispc_linux`.
-* `make -f Makefile.linux` from `ISPC Texture Compressor` folder.
+* Use `make -f Makefile.linux` from `ISPC Texture Compressor` folder to build the ISPC Texture Compressor library.
+* The sample application is not available on Linux.
