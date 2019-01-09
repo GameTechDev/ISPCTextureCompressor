@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Copyright (c) 2017, Intel Corporation
+// Copyright (c) 2017-2019, Intel Corporation
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
@@ -28,19 +28,19 @@
 class StopWatch
 {
 public:
-	StopWatch();
+    StopWatch();
 
-	void Start();
-	void Stop();
-	void Reset();
+    void Start();
+    void Stop();
+    void Reset();
 
-	double TimeInSeconds() const;
-	double TimeInMilliseconds() const;
-	double TimeInMicroseconds() const;
+    double TimeInSeconds() const;
+    double TimeInMilliseconds() const;
+    double TimeInMicroseconds() const;
 
 private:
-	LONGLONG frequency;
-	LONGLONG start;
-	LONGLONG stop;
-	DWORD_PTR affinityMask;
+    LONGLONG frequency;
+    LONGLONG start;
+    LONGLONG stop;
+    DWORD_PTR affinityMask;
 };

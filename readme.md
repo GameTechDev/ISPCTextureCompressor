@@ -1,19 +1,19 @@
 # Fast ISPC Texture Compressor
 
-State of the art texture compression for BC6H, BC7, ETC1, ASTC and BC1/BC3.
-
-Uses [ISPC compiler](https://ispc.github.io/).
-
-See [Fast ISPC Texture Compressor](https://software.intel.com/en-us/articles/fast-ispc-texture-compressor-update) post on
-Intel Developer Zone.
-
-Supported compression formats:
+This repository contains a texture compression library for the following
+formats:
 
 * BC6H (FP16 HDR input)
 * BC7
 * ASTC (LDR, block sizes up to 8x8)
 * ETC1
 * BC1, BC3 (aka DXT1, DXT5)
+
+The library uses the [ISPC compiler](https://ispc.github.io/) to generate CPU
+SIMD-optmiized compression algorithms.  For more information, see the [Fast ISPC
+Texture
+Compressor](https://software.intel.com/en-us/articles/fast-ispc-texture-compressor-update)
+article on Intel Developer Zone.
 
 ## License
 
@@ -46,18 +46,24 @@ changes.
 
 ## Build Instructions
 
-* Windows:
-	* Use Visual Studio 2012 on later, build solution or project files.
-	* ISPC version 1.8.2 is included in this repo.
+#### Windows
 
-* Mac OS X:
-	* Xcode project file included only for compressor itself, not for the examples.
-	* You'll need to get ISPC compiler version [1.8.2 build](https://sf.net/projects/ispcmirror) and put the compiler executable into `ISPC Texture Compressor/ispc_osx`.
-	* Use `ISPC Texture Compressor/ispc_texcomp.xcodeproj`, tested with Xcode 7.3.
-	* Minimum OS X deployment version set to 10.9.
-	* dylib install name is set to `@executable_path/../Frameworks/$(EXECUTABLE_PATH)`
+* The build projects use Visual Studio 2017, Windows Tools 1.4.1, and the Windows 10 April 2018 Update SDK (17134)
+* A Windows binary of ISPC version 1.8.2 is included
+* Use `ISPC Texture Compressor\ispc_texcomp\ispc_texcomp.vcxproj` to build the ISPC Texture Compressor library
+* Use `ISPC Texture Compressor\ISPC Texture Compressor.sln` to build and run a sample application that demonstrates the tradeoffs between the
+BC1, BC3, and BC7 variants
+* Use `ISPC Texture Compressor\ISPC HDR Texture Compressor.sln` to build and run a sample application that demonstrates the tradeoffs between the BC6H profiles
 
-* Linux:
-	* Makefile included only for compressor itself, not for the examples.
-	* You'll need to get ISPC compiler version [1.8.2 build](https://sf.net/projects/ispcmirror) and put the compiler executable into `ISPC Texture Compressor/ispc_linux`.
-	* `make -f Makefile.linux` from `ISPC Texture Compressor` folder.
+
+#### Mac OS X:
+* Xcode project file included only for compressor itself, not for the examples.
+* You'll need to get ISPC compiler version [1.8.2 build](https://sf.net/projects/ispcmirror) and put the compiler executable into `ISPC Texture Compressor/ispc_osx`.
+* Use `ISPC Texture Compressor/ispc_texcomp.xcodeproj`, tested with Xcode 7.3.
+* Minimum OS X deployment version set to 10.9.
+* dylib install name is set to `@executable_path/../Frameworks/$(EXECUTABLE_PATH)`
+
+#### Linux:
+* Makefile included only for compressor itself, not for the examples.
+* You'll need to get ISPC compiler version [1.8.2 build](https://sf.net/projects/ispcmirror) and put the compiler executable into `ISPC Texture Compressor/ispc_linux`.
+* `make -f Makefile.linux` from `ISPC Texture Compressor` folder.

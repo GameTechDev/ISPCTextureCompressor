@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Copyright (c) 2017, Intel Corporation
+// Copyright (c) 2017-2019 Intel Corporation
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
@@ -33,42 +33,42 @@ cbuffer cb0
 
 struct VS_INPUT
 {
-	float4 vPosition : POSITION;
-	float2 vTexcoord : TEXCOORD0;
+    float4 vPosition : POSITION;
+    float2 vTexcoord : TEXCOORD0;
 };
 
 struct VS_OUTPUT
 {
-	float4 vPosition : SV_POSITION;
-	float2 vTexcoord : TEXCOORD0;
+    float4 vPosition : SV_POSITION;
+    float2 vTexcoord : TEXCOORD0;
 };
 
 // Pass-through vertex shader.
 VS_OUTPUT PassThroughVS(VS_INPUT Input)
 {
-	VS_OUTPUT Output;
+    VS_OUTPUT Output;
 
-	Output.vPosition = mul(Input.vPosition, mView);
-	Output.vTexcoord = Input.vTexcoord;
+    Output.vPosition = mul(Input.vPosition, mView);
+    Output.vTexcoord = Input.vTexcoord;
 
-	return Output;
+    return Output;
 }
 
 // Display pixel shader.
 float4 RenderFramePS(VS_OUTPUT Input) : SV_TARGET
 {
-	float4 texel = gTexture.Sample(gSampler, Input.vTexcoord);
+    float4 texel = gTexture.Sample(gSampler, Input.vTexcoord);
 
     return texel*exposure_mul;
 }
 
 float4 RenderAlphaPS(VS_OUTPUT Input) : SV_TARGET
 {
-	float4 texel = gTexture.Sample(gSampler, Input.vTexcoord);
-	
-	float alpha = texel.a*texel.a; // compensate for gamma
-	
-	return float4(alpha.xxx, 1.0f);
+    float4 texel = gTexture.Sample(gSampler, Input.vTexcoord);
+
+    float alpha = texel.a*texel.a; // compensate for gamma
+
+    return float4(alpha.xxx, 1.0f);
 }
 
 // Render to texture pixel shader.
