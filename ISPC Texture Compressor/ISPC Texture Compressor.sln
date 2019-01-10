@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28307.168
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ISPC Texture Compressor", "ISPC Texture Compressor\ISPC Texture Compressor.vcxproj", "{DF4FB1EF-CAD7-450B-A418-B4CA3099CFE5}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ISPC Texture Compressor", "ISPC Texture Compressor.vcxproj", "{DF4FB1EF-CAD7-450B-A418-B4CA3099CFE5}"
 	ProjectSection(ProjectDependencies) = postProject
 		{85344B7F-5AA0-4E12-A065-D1333D11F6CA} = {85344B7F-5AA0-4E12-A065-D1333D11F6CA}
 		{371B9FA9-4C90-4AC6-A123-ACED756D6C77} = {371B9FA9-4C90-4AC6-A123-ACED756D6C77}
@@ -17,7 +17,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DXUTOpt", "DXUT\Optional\DX
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DirectXTex", "DirectXTex\DirectXTex\DirectXTex_Desktop_2017_Win10.vcxproj", "{371B9FA9-4C90-4AC6-A123-ACED756D6C77}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ispc_texcomp", "ispc_texcomp\ispc_texcomp.vcxproj", "{9B44F7B9-A9AF-45A4-8695-96792A18B052}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ispc_texcomp", "..\ispc_texcomp\ispc_texcomp.vcxproj", "{9B44F7B9-A9AF-45A4-8695-96792A18B052}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

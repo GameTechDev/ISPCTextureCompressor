@@ -104,13 +104,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\dxut\core;..\dxut\optional;..\directxtex\directxtex;..\ispc_texcomp</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>DXUT\Core;DXUT\Optional;DirectXTex\DirectXTex;..\ispc_texcomp</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>d3dcompiler.lib;directxtex.lib;dxut.lib;dxutopt.lib;ispc_texcomp.lib;comctl32.lib;usp10.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\directxtex\directxtex\bin\desktop_2017_win10\win32\debug;..\dxut\core\bin\desktop_2017_win10\win32\debug;..\dxut\optional\bin\desktop_2017_win10\win32\debug;..\debug</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>DirectXTex\DirectXTex\bin\desktop_2017_win10\win32\debug;DXUT\Core\bin\desktop_2017_win10\win32\debug;DXUT\Optional\bin\desktop_2017_win10\win32\debug;Debug</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -121,13 +121,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\dxut\core;..\dxut\optional;..\directxtex\directxtex;..\ispc_texcomp</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>DXUT\Core;DXUT\Optional;DirectXTex\DirectXTex;..\ispc_texcomp</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>d3dcompiler.lib;directxtex.lib;dxut.lib;dxutopt.lib;ispc_texcomp.lib;comctl32.lib;usp10.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\directxtex\directxtex\bin\desktop_2017_win10\x64\debug;..\dxut\core\bin\desktop_2017_win10\x64\debug;..\dxut\optional\bin\desktop_2017_win10\x64\debug;..\x64\debug</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>DirectXTex\DirectXTex\bin\desktop_2017_win10\x64\debug;DXUT\Core\bin\desktop_2017_win10\x64\debug;DXUT\Optional\bin\desktop_2017_win10\x64\debug;x64\Debug</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -140,7 +140,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\dxut\core;..\dxut\optional;..\directxtex\directxtex;..\ispc_texcomp</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>DXUT\Core;DXUT\Optional;DirectXTex\DirectXTex;..\ispc_texcomp</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -148,7 +148,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>d3dcompiler.lib;directxtex.lib;dxut.lib;dxutopt.lib;ispc_texcomp.lib;comctl32.lib;usp10.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\directxtex\directxtex\bin\desktop_2017_win10\win32\release;..\dxut\core\bin\desktop_2017_win10\win32\release;..\dxut\optional\bin\desktop_2017_win10\win32\release;..\release</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>DirectXTex\DirectXTex\bin\desktop_2017_win10\win32\release;DXUT\Core\bin\desktop_2017_win10\win32\release;DXUT\Optional\bin\desktop_2017_win10\win32\release;Release</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -161,7 +161,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\dxut\core;..\dxut\optional;..\directxtex\directxtex;..\ispc_texcomp</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>DXUT\Core;DXUT\Optional;DirectXTex\DirectXTex;..\ispc_texcomp</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -169,7 +169,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>d3dcompiler.lib;directxtex.lib;dxut.lib;dxutopt.lib;ispc_texcomp.lib;comctl32.lib;usp10.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\directxtex\directxtex\bin\desktop_2017_win10\x64\release;..\dxut\core\bin\desktop_2017_win10\x64\release;..\dxut\optional\bin\desktop_2017_win10\x64\release;..\x64\release</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>DirectXTex\DirectXTex\bin\desktop_2017_win10\x64\release;DXUT\Core\bin\desktop_2017_win10\x64\release;DXUT\Optional\bin\desktop_2017_win10\x64\release;x64\Release</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

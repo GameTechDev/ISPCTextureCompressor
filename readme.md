@@ -56,18 +56,23 @@ directories:
  - ISPC/osx/
  - ISPC/win/
 
+Source for the ISPC Texture Compressor library is under `ispc_texcomp/`.
+
+Source for a sample that demonstrates the tradeoffs between the supported
+compression variants is under `ISPC Texture Compressor/`.
+
 #### Windows
 
 * The build projects use Visual Studio 2017, Windows Tools 1.4.1, and the Windows 10 April 2018 Update SDK (17134)
-* Use `ISPC Texture Compressor\ispc_texcomp\ispc_texcomp.vcxproj` to build the ISPC Texture Compressor library
-* Use `ISPC Texture Compressor\ISPC Texture Compressor.sln` to build and run a sample application that demonstrates the tradeoffs between the supported compression variants
+* Use `ispc_texcomp\ispc_texcomp.vcxproj` to build the ISPC Texture Compressor library
+* Use `ISPC Texture Compressor\ISPC Texture Compressor.sln` to build and run the sample
 
 #### Mac OS X:
 * The build has been tested with Xcode 7.3 with minimum OS X deployment version set to 10.9
-* Use `ISPC Texture Compressor/ispc_texcomp.xcodeproj` to build the ISPC Texture Compressor library
+* Use `ispc_texcomp.xcodeproj` to build the ISPC Texture Compressor library
  * dylib install name is set to `@executable_path/../Frameworks/$(EXECUTABLE_PATH)`
-* The sample application is not available on OSX.
+* The sample application is not available on OS X.
 
 #### Linux:
-* Use `make -f Makefile.linux` from `ISPC Texture Compressor` folder to build the ISPC Texture Compressor library.
+* Use `make -f Makefile.linux` to build the ISPC Texture Compressor library
 * The sample application is not available on Linux.

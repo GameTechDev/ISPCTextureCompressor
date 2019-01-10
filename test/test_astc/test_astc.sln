@@ -8,7 +8,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test_astc", "test_astc.vcxp
 		{9B44F7B9-A9AF-45A4-8695-96792A18B052} = {9B44F7B9-A9AF-45A4-8695-96792A18B052}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ispc_texcomp", "..\ISPC Texture Compressor\ispc_texcomp\ispc_texcomp.vcxproj", "{9B44F7B9-A9AF-45A4-8695-96792A18B052}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ispc_texcomp", "..\..\ispc_texcomp\ispc_texcomp.vcxproj", "{9B44F7B9-A9AF-45A4-8695-96792A18B052}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

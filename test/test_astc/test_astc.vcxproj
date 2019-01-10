@@ -70,7 +70,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(SolutionDir)ispc_texcomp\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\ispc_texcomp</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -81,7 +81,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(SolutionDir)ispc_texcomp\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\ispc_texcomp</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -93,7 +93,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(SolutionDir)ispc_texcomp\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\ispc_texcomp</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -108,7 +108,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(SolutionDir)ispc_texcomp\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\ispc_texcomp</AdditionalIncludeDirectories>
       <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
     <Link>
@@ -122,12 +122,12 @@
     <ClCompile Include="test_astc.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\ISPC Texture Compressor\ispc_texcomp\ispc_texcomp.vcxproj">
+    <ProjectReference Include="..\..\ispc_texcomp\ispc_texcomp.vcxproj">
       <Project>{9b44f7b9-a9af-45a4-8695-96792a18b052}</Project>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\ispc_texcomp\ispc_texcomp.def" />
+    <None Include="..\..\ispc_texcomp\ispc_texcomp.def" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
