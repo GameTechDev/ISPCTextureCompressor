@@ -7,10 +7,10 @@ call :build x64   Debug "%~dp0..\ISPC Texture Compressor\ispc_texcomp\ispc_texco
 call :build Win32 Release "%~dp0..\ISPC Texture Compressor\ispc_texcomp\ispc_texcomp.vcxproj"
 call :build x64   Release "%~dp0..\ISPC Texture Compressor\ispc_texcomp\ispc_texcomp.vcxproj"
 
-call :build Win32 Debug "%~dp0..\ISPC Texture Compressor\test_astc.sln"
-call :build x64   Debug "%~dp0..\ISPC Texture Compressor\test_astc.sln"
-call :build Win32 Release "%~dp0..\ISPC Texture Compressor\test_astc.sln"
-call :build x64   Release "%~dp0..\ISPC Texture Compressor\test_astc.sln"
+call :build Win32 Debug "%~dp0test_astc\test_astc.sln"
+call :build x64   Debug "%~dp0test_astc\test_astc.sln"
+call :build Win32 Release "%~dp0test_astc\test_astc.sln"
+call :build x64   Release "%~dp0test_astc\test_astc.sln"
 
 call :build x86 Debug "%~dp0..\ISPC Texture Compressor\ISPC Texture Compressor.sln"
 call :build x64 Debug "%~dp0..\ISPC Texture Compressor\ISPC Texture Compressor.sln"
