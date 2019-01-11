@@ -15,6 +15,8 @@ Texture
 Compressor](https://software.intel.com/en-us/articles/fast-ispc-texture-compressor-update)
 article on Intel Developer Zone.
 
+![Sample screenshot](screenshot.png "Sample screenshot")
+
 ## License
 
 Copyright 2017 Intel Corporation
