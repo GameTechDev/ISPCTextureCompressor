@@ -195,7 +195,7 @@ inline void compute_axis3(float axis[3], float covar[6], uniform const int power
 			for (uniform int p=0; p<3; p++)
 				norm_sq += axis[p]*axis[p];
 
-			float rnorm = rsqrt(norm_sq);
+			float rnorm = 1.0f / sqrt(norm_sq);	// Note: Replaced the original rsqrt() function as it produces subtly different results on different architectures causing non-deterministic output (Intel vs. AMD Ryzen was observed to differ)
 			for (uniform int p=0; p<3; p++) vec[p] *= rnorm;
 		}		
 	}
@@ -219,7 +219,7 @@ inline void compute_axis(float axis[4], float covar[10], uniform const int power
 			for (uniform int p=0; p<channels; p++)
 				norm_sq += axis[p]*axis[p];
 
-			float rnorm = rsqrt(norm_sq);
+			float rnorm = 1.0f / sqrt(norm_sq);	// Note: Replaced the original rsqrt() function as it produces subtly different results on different architectures causing non-deterministic output (Intel vs. AMD Ryzen was observed to differ)
 			for (uniform int p=0; p<channels; p++) vec[p] *= rnorm;
 		}		
 	}
@@ -296,7 +296,7 @@ inline void pick_endpoints(float c0[3], float c1[3], float block[48], float axis
 	for (uniform int p=0; p<3; p++)
 		norm_sq += axis[p]*axis[p];
 
-	float rnorm_sq = rcp(norm_sq);
+	float rnorm_sq = 1.0f / norm_sq;	// Note: Replaced the original rcp() function as it produces subtly different results on different architectures causing non-deterministic output (Intel vs. AMD Ryzen was observed to differ)
 	for (uniform int p=0; p<3; p++)
 	{
 		c0[p] = clamp(dc[p]+min_dot*rnorm_sq*axis[p], 0, 255);
@@ -317,7 +317,7 @@ inline uint32 fast_quant(float block[48], int p0, int p1)
 	float sq_norm = 0;
 	for (uniform int p=0; p<3; p++) sq_norm += sq(dir[p]);
 
-	float rsq_norm = rcp(sq_norm);
+	float rsq_norm = 1.0f / sq_norm;	// Note: Replaced the original rcp() function as it produces subtly different results on different architectures causing non-deterministic output (Intel vs. AMD Ryzen was observed to differ)
 
 	for (uniform int p=0; p<3; p++) dir[p] *= rsq_norm*3;
 
@@ -462,7 +462,7 @@ inline void bc1_refine(int pe[2], float block[48], unsigned int32 bits, float dc
 	    float Cxx = 16*sq(3)-2*3*sum_q+sum_qq;
 	    float Cyy = sum_qq;
 		float Cxy = 3*sum_q-sum_qq;
-		float scale = 3f * rcp(Cxx*Cyy - Cxy*Cxy);
+		float scale = 3f * (1.0f / (Cxx*Cyy - Cxy * Cxy));	// Note: Replaced the original rcp() function as it produces subtly different results on different architectures causing non-deterministic output (Intel vs. AMD Ryzen was observed to differ)
 
         for (uniform int p=0; p<3; p++)
         {
