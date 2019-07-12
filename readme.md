@@ -10,7 +10,7 @@ formats:
 * BC1, BC3 (aka DXT1, DXT5)
 
 The library uses the [ISPC compiler](https://ispc.github.io/) to generate CPU
-SIMD-optmiized compression algorithms.  For more information, see the [Fast ISPC
+SIMD-optimized compression algorithms.  For more information, see the [Fast ISPC
 Texture
 Compressor](https://software.intel.com/en-us/articles/fast-ispc-texture-compressor-update)
 article on Intel Developer Zone.
@@ -49,7 +49,7 @@ changes.
 ## Build Instructions
 
 Binaries for ISPC v1.9.2 need to be obtained separately (e.g., from [the ISPC
-repo](https://ispc.github.io/downloads.html) or [the sourceforge
+repo](https://ispc.github.io/downloads.html) or [the SourceForge
 mirror](http://sourceforge.net/projects/ispcmirror/files/v1.9.2/)).  Download
 the appropriate compiler for your target, and place the binary in the following
 directories:
