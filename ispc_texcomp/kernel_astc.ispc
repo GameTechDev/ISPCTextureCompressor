@@ -24,6 +24,20 @@ typedef unsigned int64 uint64_t;
 ///////////////////////////
 //   generic helpers
 
+inline float RCP(float x)
+{
+    return 1.0f/x; // uses rcp when compiled with --opt=fast-math
+    //return rcp(x);
+    //return rcp_fast(x);
+}
+
+inline float RSQRT(float x)
+{
+    return 1.0f/sqrt(x); // uses rsqrt when compiled with --opt=fast-math
+    //return rsqrt(x);
+    //return rsqrt_fast(x);
+}
+
 void swap(float& a, float& b)
 {
     int t = a;
@@ -295,7 +309,7 @@ inline void compute_axis(float axis[4], float covar[10], uniform const int power
             for (uniform int p = 0; p < channels; p++)
                 norm_sq += axis[p] * axis[p];
 
-            float rnorm = rsqrt(norm_sq);
+            float rnorm = RSQRT(norm_sq);
             for (uniform int p = 0; p < channels; p++) vec[p] *= rnorm;
         }
     }
@@ -1721,8 +1735,7 @@ void ls_refine_scale(float endpoints[4], float scaled_pixels[], astc_block block
     float scale = xx[0] / (xx[1] + xx[0]);
 
     if (xx[1] + xx[0] < 1) scale = 1;
-    if (scale > 0.9999) scale = 0.9999;
-    if (scale < 0) scale = 0;
+    scale = clamp(scale, 0.0f, 0.9999f); // note: clamp also takes care of possible NaNs
         
     float sum_zz = 0;
     float sum_zp[3] = { 0, 0, 0 };
