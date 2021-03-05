@@ -19,7 +19,6 @@
 #include <cstring>
 #include <algorithm>
 #include <vector>
-#include <limits>
 
 void GetProfile_astc_fast(astc_enc_settings* settings, int block_width, int block_height)
 {
@@ -55,7 +54,7 @@ struct astc_block
 {
     int width;
     int height;
-    bool dual_plane;
+    uint8_t dual_plane;
     int weight_range;
     uint8_t weights[64];
     int color_component_selector;
@@ -80,8 +79,8 @@ int pack_block_mode(astc_block* block)
 {
     int block_mode = 0;
 
-    int D = !!block->dual_plane;
-    int H = !!(block->weight_range >= 6);
+    int D = block->dual_plane;
+    int H = block->weight_range >= 6;
     int DH = D * 2 + H;
     int R = block->weight_range + 2 - ((H > 0) ? 6 : 0);
     R = R / 2 + R % 2 * 4;
@@ -476,7 +475,7 @@ void setup_list_context(ispc::astc_enc_context* ctx, uint32_t packed_mode)
 {
     ctx->width = 2 + get_field(packed_mode, 15, 13); // 2..8 <= 2^3
     ctx->height = 2 + get_field(packed_mode, 18, 16); // 2..8 <= 2^3
-    ctx->dual_plane = !!get_field(packed_mode, 19, 19); // 0 or 1
+    ctx->dual_plane = get_field(packed_mode, 19, 19); // 0 or 1
     ctx->partitions = 1;
     
     int color_endpoint_modes0 = get_field(packed_mode, 7, 6) * 2 + 6; // 6, 8, 10 or 12
