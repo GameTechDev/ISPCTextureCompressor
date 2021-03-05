@@ -26,6 +26,7 @@
 #include <limits>
 #include "processing.h"
 #include "StopWatch.h" // Timer.
+#include <cmath>
 
 CompressionFunc* gCompressionFunc = nullptr;
 bool gMultithreaded = true;
@@ -278,7 +279,7 @@ HRESULT PadTexture(ID3D11ShaderResourceView** textureSRV)
     padTexSRVDesc.Format = padTexDesc.Format;
     padTexSRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
     padTexSRVDesc.Texture2D.MipLevels = padTexDesc.MipLevels;
-    padTexSRVDesc.Texture2D.MostDetailedMip = padTexDesc.MipLevels - 1;
+    padTexSRVDesc.Texture2D.MostDetailedMip = 0;
     V_RETURN(device->CreateShaderResourceView(padTex, &padTexSRVDesc, textureSRV));
 
     // Release resources.
@@ -336,7 +337,7 @@ HRESULT CompressTexture(ID3D11ShaderResourceView* uncompressedSRV, ID3D11ShaderR
     compSRVDesc.Format = compTexDesc.Format;
     compSRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
     compSRVDesc.Texture2D.MipLevels = compTexDesc.MipLevels;
-    compSRVDesc.Texture2D.MostDetailedMip = compTexDesc.MipLevels - 1;
+    compSRVDesc.Texture2D.MostDetailedMip = 0;
     V_RETURN(device->CreateShaderResourceView(compTex, &compSRVDesc, compressedSRV));
 
     // Create a staging resource for the compressed texture.
@@ -477,7 +478,7 @@ HRESULT ComputeError(ID3D11ShaderResourceView* uncompressedSRV, ID3D11ShaderReso
     compSRVDesc.Format = compTexDesc.Format;
     compSRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
     compSRVDesc.Texture2D.MipLevels = compTexDesc.MipLevels;
-    compSRVDesc.Texture2D.MostDetailedMip = compTexDesc.MipLevels - 1;
+    compSRVDesc.Texture2D.MostDetailedMip = 0;
     ID3D11ShaderResourceView *compSRV;
     V_RETURN(device->CreateShaderResourceView(compTex, &compSRVDesc, &compSRV));
 
