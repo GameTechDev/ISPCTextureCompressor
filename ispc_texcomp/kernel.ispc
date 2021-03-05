@@ -13,9 +13,7 @@
 // SOFTWARE.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-<<<<<<< Updated upstream
 #ifndef ISPC_UINT_IS_DEFINED
-=======
 //these are defined in ISPC version 1.13.0 and later
 >>>>>>> Stashed changes
 typedef unsigned int8 uint8;
