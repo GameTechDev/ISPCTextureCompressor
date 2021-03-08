@@ -15,7 +15,6 @@
 
 #ifndef ISPC_UINT_IS_DEFINED
 //these are defined in ISPC version 1.13.0 and later
->>>>>>> Stashed changes
 typedef unsigned int8 uint8;
 typedef unsigned int32 uint32;
 typedef unsigned int64 uint64;
