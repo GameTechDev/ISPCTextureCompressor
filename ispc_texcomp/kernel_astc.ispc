@@ -1298,7 +1298,7 @@ struct astc_block
 {
     uniform int width;
     uniform int height;
-    uniform bool dual_plane;
+    uniform uint8_t dual_plane;
     int weight_range;
     uint8_t weights[64];
     int color_component_selector;
@@ -1692,11 +1692,16 @@ void opt_weights(float scaled_pixels[], astc_block block[])
     }
 }
 
-void sgesv2(float A[4], float x[2], float b[2])
+bool sgesv2(float A[4], float x[2], float b[2])
 {
-    float inv_det = 1.0f / (A[0] * A[3] - A[1] * A[2]);
+    float det = (A[0] * A[3] - A[1] * A[2]);
+    if(det == 0)
+        return false;
+    float inv_det = 1.0f / det;
     x[0] = (b[0] * +A[3] + b[1] * -A[2])*inv_det;
     x[1] = (b[0] * -A[1] + b[1] * +A[0])*inv_det;
+
+    return true;
 }
 
 void ls_refine_scale(float endpoints[4], float scaled_pixels[], astc_block block[])
@@ -1730,12 +1735,13 @@ void ls_refine_scale(float endpoints[4], float scaled_pixels[], astc_block block
     float b[2] = { sum_d, sum_wd };
     float xx[2];
 
-    sgesv2(C, xx, b);
-
-    float scale = xx[0] / (xx[1] + xx[0]);
-
-    if (xx[1] + xx[0] < 1) scale = 1;
-    scale = clamp(scale, 0.0f, 0.9999f); // note: clamp also takes care of possible NaNs
+    float scale = 0;
+    if(sgesv2(C, xx, b))
+    {
+        scale = xx[0] / (xx[1] + xx[0]);
+        if (xx[1] + xx[0] < 1) scale = 1;
+        scale = clamp(scale, 0.0f, 0.9999f); // note: clamp also takes care of possible NaNs        
+    }    
         
     float sum_zz = 0;
     float sum_zp[3] = { 0, 0, 0 };

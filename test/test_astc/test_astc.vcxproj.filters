@@ -12,7 +12,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\ispc_texcomp\ispc_texcomp.def">
+    <None Include="..\..\ispc_texcomp\ispc_texcomp.def">
       <Filter>src</Filter>
     </None>
   </ItemGroup>
