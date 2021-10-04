@@ -19,6 +19,7 @@
 #include <cstring>
 #include <algorithm>
 #include <vector>
+#include <limits>
 
 void GetProfile_astc_fast(astc_enc_settings* settings, int block_width, int block_height)
 {
