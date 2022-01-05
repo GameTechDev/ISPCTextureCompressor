@@ -198,6 +198,8 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
     else
     {
         CDXUTComboBox *comboBox = gSampleUI.GetComboBox(IDC_PROFILE);
+        comboBox->AddItem(L"BC4 (R)", (void*)(CompressImageBC4));
+        comboBox->AddItem(L"BC5 (RG)", (void*)(CompressImageBC5));
         comboBox->AddItem(L"BC6H veryfast", (void *)(CompressImageBC6H_veryfast));
         comboBox->AddItem(L"BC6H fast", (void *)(CompressImageBC6H_fast));
         comboBox->AddItem(L"BC6H basic", (void *)(CompressImageBC6H_basic));
