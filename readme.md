@@ -7,7 +7,7 @@ formats:
 * BC7
 * ASTC (LDR, block sizes up to 8x8)
 * ETC1
-* BC1, BC3 (aka DXT1, DXT5)
+* BC1, BC3 (aka DXT1, DXT5) and BC4, BC5 (aka ATI1N, ATI2N)
 
 The library uses the [ISPC compiler](https://ispc.github.io/) to generate CPU
 SIMD-optimized compression algorithms.  For more information, see the [Fast ISPC
