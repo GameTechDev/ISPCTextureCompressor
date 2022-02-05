@@ -374,8 +374,8 @@ HRESULT CompressTexture(ID3D11ShaderResourceView* uncompressedSRV, ID3D11ShaderR
         {
             for(UINT x = 0; x < uncompTexDesc.Width; ++x, ++offset)
             {
-                // copy alpha over
-                bc4bc5bytes[offset] = reinterpret_cast<BYTE*>(uncompData.pData)[(x * 4) + (y * uncompData.RowPitch) + 3];
+                // copy R over
+                bc4bc5bytes[offset] = reinterpret_cast<BYTE*>(uncompData.pData)[(x * 4) + (y * uncompData.RowPitch) + 0];
             }
         }
     }
