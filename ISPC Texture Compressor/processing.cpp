@@ -364,6 +364,35 @@ HRESULT CompressTexture(ID3D11ShaderResourceView* uncompressedSRV, ID3D11ShaderR
     D3D11_MAPPED_SUBRESOURCE compData;
     V_RETURN(deviceContext->Map(compStgTex, D3D11CalcSubresource(0, 0, 1), D3D11_MAP_READ_WRITE, 0, &compData));
 
+    const bool isBC4 = IsBC4(gCompressionFunc);
+    const bool isBC5 = IsBC5(gCompressionFunc);
+    std::vector<BYTE> bc4bc5bytes;
+    if(isBC4)
+    {
+        bc4bc5bytes.resize(uncompTexDesc.Width * uncompTexDesc.Height);
+        for(UINT y = 0, offset = 0; y < uncompTexDesc.Height; ++y)
+        {
+            for(UINT x = 0; x < uncompTexDesc.Width; ++x, ++offset)
+            {
+                // copy R over
+                bc4bc5bytes[offset] = reinterpret_cast<BYTE*>(uncompData.pData)[(x * 4) + (y * uncompData.RowPitch) + 0];
+            }
+        }
+    }
+    else if(isBC5)
+    {
+        bc4bc5bytes.resize(uncompTexDesc.Width * uncompTexDesc.Height * 2);
+        for(UINT y = 0, offset = 0; y < uncompTexDesc.Height; ++y)
+        {
+            for(UINT x = 0; x < uncompTexDesc.Width; ++x, offset += 2)
+            {
+                // copy R and G over
+                bc4bc5bytes[offset + 0] = reinterpret_cast<BYTE*>(uncompData.pData)[(x * 4) + (y * uncompData.RowPitch) + 0];
+                bc4bc5bytes[offset + 1] = reinterpret_cast<BYTE*>(uncompData.pData)[(x * 4) + (y * uncompData.RowPitch) + 1];
+            }
+        }
+    }
+
     // Time the compression.
     StopWatch stopWatch;
     stopWatch.Start();
@@ -372,8 +401,8 @@ HRESULT CompressTexture(ID3D11ShaderResourceView* uncompressedSRV, ID3D11ShaderR
     for(int cmpNum = 0; cmpNum < kNumCompressions; cmpNum++)
     {
         rgba_surface input;
-        input.ptr = (BYTE*)uncompData.pData;
-        input.stride = uncompData.RowPitch;
+        input.ptr = (isBC4 || isBC5) ? bc4bc5bytes.data() : (BYTE*)uncompData.pData;
+        input.stride = isBC4 ? uncompTexDesc.Width : (isBC5 ? (uncompTexDesc.Width * 2) : uncompData.RowPitch);
         input.width = uncompTexDesc.Width;
         input.height = uncompTexDesc.Height;
 
@@ -419,6 +448,8 @@ static inline DXGI_FORMAT GetNonSRGBFormat(DXGI_FORMAT f) {
     switch(f) {
         case DXGI_FORMAT_BC1_UNORM_SRGB: return DXGI_FORMAT_BC1_UNORM;
         case DXGI_FORMAT_BC3_UNORM_SRGB: return DXGI_FORMAT_BC3_UNORM;
+        case DXGI_FORMAT_BC4_UNORM:      return DXGI_FORMAT_BC4_UNORM;
+        case DXGI_FORMAT_BC5_UNORM:      return DXGI_FORMAT_BC5_UNORM;
         case DXGI_FORMAT_BC7_UNORM_SRGB: return DXGI_FORMAT_BC7_UNORM;
         case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB: return DXGI_FORMAT_R8G8B8A8_UNORM;
         default: assert(!"Unknown format!");
@@ -1087,13 +1118,25 @@ int GetBytesPerBlock(CompressionFunc* fn)
     {
         default:
         case DXGI_FORMAT_BC1_UNORM_SRGB:
+        case DXGI_FORMAT_BC4_UNORM:
             return 8;
 
         case DXGI_FORMAT_BC3_UNORM_SRGB:
+        case DXGI_FORMAT_BC5_UNORM:
         case DXGI_FORMAT_BC7_UNORM_SRGB:
         case DXGI_FORMAT_BC6H_UF16:
             return 16;
     }
+}
+
+bool IsBC4(CompressionFunc* fn)
+{
+    return fn == CompressImageBC4;
+}
+
+bool IsBC5(CompressionFunc* fn)
+{
+    return fn == CompressImageBC5;
 }
 
 bool IsBC6H(CompressionFunc* fn)
@@ -1110,6 +1153,8 @@ DXGI_FORMAT GetFormatFromCompressionFunc(CompressionFunc* fn)
 {
     if (fn == CompressImageBC1) return DXGI_FORMAT_BC1_UNORM_SRGB;
     if (fn == CompressImageBC3) return DXGI_FORMAT_BC3_UNORM_SRGB;
+    if (fn == CompressImageBC4) return DXGI_FORMAT_BC4_UNORM;
+    if (fn == CompressImageBC5) return DXGI_FORMAT_BC5_UNORM;
 
     if (IsBC6H(fn)) return DXGI_FORMAT_BC6H_UF16;
 
@@ -1124,6 +1169,16 @@ void CompressImageBC1(const rgba_surface* input, BYTE* output)
 void CompressImageBC3(const rgba_surface* input, BYTE* output)
 {
     CompressBlocksBC3(input, output);
+}
+
+void CompressImageBC4(const rgba_surface* input, BYTE* output)
+{
+    CompressBlocksBC4(input, output);
+}
+
+void CompressImageBC5(const rgba_surface* input, BYTE* output)
+{
+    CompressBlocksBC5(input, output);
 }
 
 #define DECLARE_CompressImageBC6H_profile(profile)                              \
