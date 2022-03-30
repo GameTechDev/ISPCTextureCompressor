@@ -450,6 +450,8 @@ static inline DXGI_FORMAT GetNonSRGBFormat(DXGI_FORMAT f) {
         case DXGI_FORMAT_BC3_UNORM_SRGB: return DXGI_FORMAT_BC3_UNORM;
         case DXGI_FORMAT_BC4_UNORM:      return DXGI_FORMAT_BC4_UNORM;
         case DXGI_FORMAT_BC5_UNORM:      return DXGI_FORMAT_BC5_UNORM;
+        case DXGI_FORMAT_BC4_SNORM:      return DXGI_FORMAT_BC4_SNORM;
+        case DXGI_FORMAT_BC5_SNORM:      return DXGI_FORMAT_BC5_SNORM;
         case DXGI_FORMAT_BC7_UNORM_SRGB: return DXGI_FORMAT_BC7_UNORM;
         case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB: return DXGI_FORMAT_R8G8B8A8_UNORM;
         default: assert(!"Unknown format!");
@@ -1119,10 +1121,12 @@ int GetBytesPerBlock(CompressionFunc* fn)
         default:
         case DXGI_FORMAT_BC1_UNORM_SRGB:
         case DXGI_FORMAT_BC4_UNORM:
+        case DXGI_FORMAT_BC4_SNORM:
             return 8;
 
         case DXGI_FORMAT_BC3_UNORM_SRGB:
         case DXGI_FORMAT_BC5_UNORM:
+        case DXGI_FORMAT_BC5_SNORM:
         case DXGI_FORMAT_BC7_UNORM_SRGB:
         case DXGI_FORMAT_BC6H_UF16:
             return 16;
@@ -1131,12 +1135,12 @@ int GetBytesPerBlock(CompressionFunc* fn)
 
 bool IsBC4(CompressionFunc* fn)
 {
-    return fn == CompressImageBC4;
+    return fn == CompressImageBC4 || fn == CompressImageBC4S;
 }
 
 bool IsBC5(CompressionFunc* fn)
 {
-    return fn == CompressImageBC5;
+    return fn == CompressImageBC5 || fn == CompressImageBC5S;
 }
 
 bool IsBC6H(CompressionFunc* fn)
@@ -1155,6 +1159,8 @@ DXGI_FORMAT GetFormatFromCompressionFunc(CompressionFunc* fn)
     if (fn == CompressImageBC3) return DXGI_FORMAT_BC3_UNORM_SRGB;
     if (fn == CompressImageBC4) return DXGI_FORMAT_BC4_UNORM;
     if (fn == CompressImageBC5) return DXGI_FORMAT_BC5_UNORM;
+    if (fn == CompressImageBC4S) return DXGI_FORMAT_BC4_SNORM;
+    if (fn == CompressImageBC5S) return DXGI_FORMAT_BC5_SNORM;
 
     if (IsBC6H(fn)) return DXGI_FORMAT_BC6H_UF16;
 
@@ -1179,6 +1185,16 @@ void CompressImageBC4(const rgba_surface* input, BYTE* output)
 void CompressImageBC5(const rgba_surface* input, BYTE* output)
 {
     CompressBlocksBC5(input, output);
+}
+
+void CompressImageBC4S(const rgba_surface* input, BYTE* output)
+{
+    CompressBlocksBC4S(input, output);
+}
+
+void CompressImageBC5S(const rgba_surface* input, BYTE* output)
+{
+    CompressBlocksBC5S(input, output);
 }
 
 #define DECLARE_CompressImageBC6H_profile(profile)                              \

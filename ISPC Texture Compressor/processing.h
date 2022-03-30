@@ -99,6 +99,8 @@ void CompressImageBC1(const rgba_surface* input, BYTE* output);
 void CompressImageBC3(const rgba_surface* input, BYTE* output);
 void CompressImageBC4(const rgba_surface* input, BYTE* output);
 void CompressImageBC5(const rgba_surface* input, BYTE* output);
+void CompressImageBC4S(const rgba_surface* input, BYTE* output);
+void CompressImageBC5S(const rgba_surface* input, BYTE* output);
 void CompressImageBC6H_veryfast(const rgba_surface* input, BYTE* output);
 void CompressImageBC6H_fast(const rgba_surface* input, BYTE* output);
 void CompressImageBC6H_basic(const rgba_surface* input, BYTE* output);
