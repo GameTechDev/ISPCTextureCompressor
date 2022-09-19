@@ -1704,11 +1704,44 @@ bool sgesv2(float A[4], float x[2], float b[2])
     return true;
 }
 
-void ls_refine_scale(float endpoints[4], float scaled_pixels[], astc_block block[])
+void ls_refine_scale(float endpoints[8], float scaled_pixels[], astc_block block[])
 {
     int levels = get_levels(block->weight_range);
     float levels_rcp = 1.0f / (levels - 1);
 
+    // In this mode, the endpoints are on a line through 0, and the first endpoint
+    // is a scaled version of the second endpoint with a scale factor 0 <= s < 1.
+    //
+    // Determining optimal s and endpoints is a non-linear problem; approximate it
+    // by first solving for the scale factor and then separately solving for the
+    // endpoint value.
+    //
+    // The scale factor solve starts from (where e_0, e_1 are RGB endpoints)
+    //    e_0 = s * e_1
+    //
+    // thus for an interpolation weight w
+    //   lerp(e_0, e_1, w)
+    //   = lerp(s * e_1,  e_1, w)
+    //   = lerp(s, 1, w) * e_1
+    //   = (s + (1-s)*w) * e_1
+    //
+    // and if we take look at the 2-norm (Euclidean length) of that vector
+    //
+    //   len(lerp(e_0, e_1, w)) = (s + (1-s)*w) * len(e_1)
+    //
+    // if we consider s and (1-s) as separate unknowns xx_0 and xx_1, we get
+    // an overdetermined linear system for the 2D vector lengths of the pixels
+    // (d_i in the following) that we can solve in a Least-Squares sense via
+    // the Normal Equations and Cramer's rule:
+    //
+    // [1 w_1]          [d_1]
+    // [1 w_2] [xx_0]   [d_2]
+    // [1 w_3] [xx_1] = [d_3]
+    // [ ... ]          [...]
+    // [1 w_N]          [d_N]
+    //
+    // we then recover s (the ratio between the lengths of e_0 and e_1) as
+    // xx_0 / (xx_0 + xx_1).
     float sum_w = 0;
     float sum_ww = 0;
     float sum_d = 0;
@@ -1735,14 +1768,32 @@ void ls_refine_scale(float endpoints[4], float scaled_pixels[], astc_block block
     float b[2] = { sum_d, sum_wd };
     float xx[2];
 
-    float scale = 0;
+    // Singular configurations are precisely those where all weights are equal, i.e. constant color.
+    // Used to set scale=0 in this case but that's really bad when that weight is 0 (we're now making
+    // the whole block black). scale=1 isn't ideal (and in fact not something we can hit exactly)
+    // but at least leaves the endpoints in roughly the right place.
+    float scale = 1;
     if(sgesv2(C, xx, b))
     {
         scale = xx[0] / (xx[1] + xx[0]);
         if (xx[1] + xx[0] < 1) scale = 1;
         scale = clamp(scale, 0.0f, 0.9999f); // note: clamp also takes care of possible NaNs        
-    }    
-        
+    }
+
+    // Now, solve another Least Squares system for the actual endpoint values given the previously
+    // determined scale. This time we're trying to solve, for every pixel p_i
+    //
+    //   p_i = lerp(e_0, e_1, w) = (s + (1-s)*w_i) * e_1
+    //
+    // let z_i := s + (1 - s)*w_i, then we get the overdetermined linear system
+    //
+    // [z_1]           [p_1^T]
+    // [z_2]           [p_2^T]
+    // [z_3] [e_1]^T = [p_3^T]
+    // [...]           [ ... ]
+    // [z_N]           [p_N^T]
+    //
+    // which we solve in a least-squares sense for e_1.
     float sum_zz = 0;
     float sum_zp[3] = { 0, 0, 0 };
         
