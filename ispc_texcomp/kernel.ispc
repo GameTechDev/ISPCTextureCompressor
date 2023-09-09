@@ -621,6 +621,47 @@ inline void CompressBlockBC3_alpha(float block[16], uint32 data[2])
     data[1] |= qblock[1]<<8;
 }
 
+inline void CompressBlockBC4Signed(float block[16], uint32 data[2])
+{
+    float ep[2] = { 255, 0 };
+
+    for (uniform int k=0; k<16; k++)
+	{
+		ep[0] = min(ep[0], block[k]);
+		ep[1] = max(ep[1], block[k]);
+	}
+
+    if (ep[0] == ep[1]) ep[1] = ep[0]+0.1f;
+
+    uint32 qblock[2] = { 0, 0 };
+    float scale = 7f/(ep[1]-ep[0]);
+
+    for (uniform int k=0; k<16; k++)
+    {
+        float v = block[k];
+        float proj = (v-ep[0])*scale+0.5f;
+
+        int q = clamp((int)proj, 0, 7);
+
+		q = 7-q;
+
+        if (q > 0) q++;
+        if (q==8) q = 1;
+
+        qblock[k/8] |= q << ((k%8)*3);
+    }
+
+	// (could be improved by refinement)
+
+    for (uniform int e=0; e<2; e++) ep[e] = clamp((int)ep[e] - 0x80, -128, 127);
+
+    data[0] = (0xFF & (int)ep[0]) << 8;
+    data[0] |= (0xFF & (int)ep[1]);
+    data[0] |= qblock[0]<<16;
+    data[1] = qblock[0]>>16;
+    data[1] |= qblock[1]<<8;
+}
+
 inline void CompressBlockBC1(uniform rgba_surface src[], int xx, uniform int yy, uniform uint8 dst[])
 {
 	float block[48];
@@ -658,6 +699,18 @@ inline void CompressBlockBC4(uniform rgba_surface src[], int xx, uniform int yy,
 	store_data(dst, src->width, xx, yy, data, 2);
 }
 
+inline void CompressBlockBC4S(uniform rgba_surface src[], int xx, uniform int yy, uniform uint8 dst[])
+{
+	float block[16];
+    uint32 data[2];
+
+	load_block_r_8bit(block, src, xx, yy);
+
+    CompressBlockBC4Signed(block, data);
+
+	store_data(dst, src->width, xx, yy, data, 2);
+}
+
 inline void CompressBlockBC5(uniform rgba_surface src[], int xx, uniform int yy, uniform uint8 dst[])
 {
 	float block[32];
@@ -667,6 +720,19 @@ inline void CompressBlockBC5(uniform rgba_surface src[], int xx, uniform int yy,
 	
     CompressBlockBC3_alpha(block, data);
     CompressBlockBC3_alpha(&block[16], &data[2]);
+
+	store_data(dst, src->width, xx, yy, data, 4);
+}
+
+inline void CompressBlockBC5S(uniform rgba_surface src[], int xx, uniform int yy, uniform uint8 dst[])
+{
+	float block[32];
+    uint32 data[4];
+
+	load_block_interleaved_rg_8bit(block, src, xx, yy);
+
+    CompressBlockBC4Signed(block, data);
+    CompressBlockBC4Signed(&block[16], &data[2]);
 
 	store_data(dst, src->width, xx, yy, data, 4);
 }
@@ -698,12 +764,30 @@ export void CompressBlocksBC4_ispc(uniform rgba_surface src[], uniform uint8 dst
 	}
 }
 
+export void CompressBlocksBC4S_ispc(uniform rgba_surface src[], uniform uint8 dst[])
+{
+	for (uniform int yy = 0; yy<src->height/4; yy++)
+	foreach (xx = 0 ... src->width/4)
+	{
+		CompressBlockBC4S(src, xx, yy, dst);
+	}
+}
+
 export void CompressBlocksBC5_ispc(uniform rgba_surface src[], uniform uint8 dst[])
 {
 	for (uniform int yy = 0; yy<src->height/4; yy++)
 	foreach (xx = 0 ... src->width/4)
 	{
 		CompressBlockBC5(src, xx, yy, dst);
+	}
+}
+
+export void CompressBlocksBC5S_ispc(uniform rgba_surface src[], uniform uint8 dst[])
+{
+	for (uniform int yy = 0; yy<src->height/4; yy++)
+	foreach (xx = 0 ... src->width/4)
+	{
+		CompressBlockBC5S(src, xx, yy, dst);
 	}
 }
 

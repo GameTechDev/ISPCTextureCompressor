@@ -461,10 +461,21 @@ void CompressBlocksBC4(const rgba_surface* src, uint8_t* dst)
 	ispc::CompressBlocksBC4_ispc((ispc::rgba_surface*)src, dst);
 }
 
+void CompressBlocksBC4S(const rgba_surface* src, uint8_t* dst)
+{
+	ispc::CompressBlocksBC4S_ispc((ispc::rgba_surface*)src, dst);
+}
+
 void CompressBlocksBC5(const rgba_surface* src, uint8_t* dst)
 {
 	ispc::CompressBlocksBC5_ispc((ispc::rgba_surface*)src, dst);
 }
+
+void CompressBlocksBC5S(const rgba_surface* src, uint8_t* dst)
+{
+	ispc::CompressBlocksBC5S_ispc((ispc::rgba_surface*)src, dst);
+}
+
 
 void CompressBlocksBC7(const rgba_surface* src, uint8_t* dst, bc7_enc_settings* settings)
 {
