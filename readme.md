@@ -65,7 +65,7 @@ compression variants is under `ISPC Texture Compressor/`.
 
 #### Windows
 
-* The build projects use Visual Studio 2017, Windows Tools 1.4.1, and the Windows 10 April 2018 Update SDK (17134)
+* The build projects use Visual Studio 2019, Windows Tools 1.4.2, and the Windows 10 April 2018 Update SDK (17134)
 * Use `ispc_texcomp\ispc_texcomp.vcxproj` to build the ISPC Texture Compressor library
 * Use `ISPC Texture Compressor\ISPC Texture Compressor.sln` to build and run the sample
 
